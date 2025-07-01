@@ -329,6 +329,12 @@ async function switchToWorkspace(workspace) {
     if (addModuleBtn) {
         addModuleBtn.style.display = canEditStructure ? 'flex' : 'none';
     }
+    
+    // CORREÇÃO: Adiciona o controle para o botão do estado vazio.
+    const emptyAddModuleBtn = document.getElementById("empty-add-module-btn");
+    if (emptyAddModuleBtn) {
+        emptyAddModuleBtn.style.display = canEditStructure ? 'flex' : 'none';
+    }
 
     const addEntityBtn = document.getElementById("add-new-entity-btn");
     if (addEntityBtn) {
