@@ -7,7 +7,8 @@ import { firebaseConfig, availableEntityIcons, fieldTypes, defaultFieldConfigs }
 import { initAutenticacao, isUsuarioLogado, getUsuarioId } from './autenticacao.js';
 import { initDatabase, loadAllEntities, loadAndRenderModules, createEntity, createModule, 
          saveEntityToModule, deleteEntityFromModule, deleteEntity, deleteModule, 
-         saveEntityStructure, saveSubEntityStructure, saveModulesOrder } from './database.js';
+         saveEntityStructure, saveSubEntityStructure, saveModulesOrder,
+         copyEntityToModule, moveEntityToModule, getEntities } from './database.js';
 import { initUI, closeMobileSidebar, createIcons, checkEmptyStates, showLoading, hideLoading, showSuccess, showError, showConfirmDialog, showInputDialog } from './ui.js';
 import { initUserProfile } from './user/userProfile.js';
 import { initInvitations, checkPendingInvitations } from './user/invitations.js';
@@ -16,6 +17,12 @@ import { initWorkspaces, getCurrentWorkspace } from './workspaces.js';
 // Variáveis globais
 let db;
 let modalNavigationStack = [];
+
+// Função helper para buscar entidade por ID
+function getEntityById(entityId) {
+    const allEntities = getEntities();
+    return allEntities.find(e => e.id === entityId);
+}
 
 // ==== PONTO DE ENTRADA DA APLICAÇÃO ====
 async function initApp() {
@@ -667,59 +674,142 @@ function setupEventListeners() {
 }
 
 async function handleEntityDrop(event) {
-    console.log('handleEntityDrop chamada com evento:', event);
-    const { item, to } = event;
+    const { item, to, from } = event;
     const { entityId, entityName, entityIcon } = item.dataset;
     const moduleEl = to.closest('.module-quadro');
     const moduleId = moduleEl.dataset.moduleId;
-    
-    console.log('Dados da entidade sendo solta:', { entityId, entityName, entityIcon, moduleId });
+    const isFromModule = from && from.classList.contains('entities-dropzone');
+    const sourceModuleEl = isFromModule ? from.closest('.module-quadro') : null;
+    const sourceModuleId = sourceModuleEl ? sourceModuleEl.dataset.moduleId : null;
 
-    if (moduleEl.querySelector(`.dropped-entity-card[data-entity-id="${entityId}"]`)) {
-        item.remove();
-        showError('Entidade já existe!', `A entidade "${entityName}" já está presente neste módulo.`);
-        return;
-    }
-    
+    // Remove o item temporário do arraste
     item.remove();
     
-    const template = document.getElementById('dropped-entity-card-template');
-    const clone = template.content.cloneNode(true);
-    const card = clone.querySelector('.dropped-entity-card');
-    card.dataset.entityId = entityId;
-    card.dataset.entityName = entityName;
-    card.dataset.moduleId = moduleId;
+    // Ação padrão é adicionar da biblioteca
+    let actionType = 'add';
     
-    const iconEl = clone.querySelector('.entity-icon');
-    if (entityIcon) {
-       iconEl.setAttribute('data-lucide', entityIcon);
-    } else {
-       iconEl.style.display = 'none';
-    }
-
-    clone.querySelector('.entity-name').textContent = entityName;
-    to.appendChild(clone);
-    
-    if (window.lucide) {
-        lucide.createIcons();
-    } else {
-        createIcons();
-    }
-    
-    const entityCard = to.querySelector(`.dropped-entity-card[data-entity-id="${entityId}"]`);
-    if (entityCard) {
-        setTimeout(() => {
-            entityCard.classList.remove('animate-pulse');
-        }, 2000);
+    // Se está vindo de outro módulo, pergunta se quer copiar ou mover
+    if (isFromModule && sourceModuleId && sourceModuleId !== moduleId) {
+        const choice = await showCopyOrMoveDialog(entityName);
+        if (choice === null) {
+            // Usuário cancelou, recria o item na origem para não perdê-lo de vista
+            const entityInfo = getEntityById(entityId);
+            if (sourceModuleId && entityInfo) {
+                renderDroppedEntity(sourceModuleId, entityId, { entityName, attributes: entityInfo.attributes || [] }, entityInfo);
+            }
+            return;
+        }
+        actionType = choice;
     }
     
     const currentWorkspace = getCurrentWorkspace();
     const workspaceId = currentWorkspace ? currentWorkspace.id : 'default';
-    const ownerId = currentWorkspace && currentWorkspace.isShared ? currentWorkspace.ownerId : null;
-    await saveEntityToModule(moduleId, entityId, entityName, workspaceId, ownerId);
+    const ownerId = currentWorkspace && !currentWorkspace.isOwner ? currentWorkspace.ownerId : null;
     
-    console.log('Entidade salva no módulo com sucesso');
-    showSuccess('Entidade adicionada!', 'Clique em configurar para definir seus campos.');
+    try {
+        if (actionType === 'copy') {
+            const newEntityInfo = await copyEntityToModule(entityId, moduleId, workspaceId, ownerId);
+            if (newEntityInfo) {
+                renderDroppedEntity(moduleId, newEntityInfo.id, { entityName: newEntityInfo.name }, newEntityInfo);
+                 // Recria o card na origem pois a cópia não deve remover o original
+                const originalEntityInfo = getEntityById(entityId);
+                 if (sourceModuleId && originalEntityInfo) {
+                    renderDroppedEntity(sourceModuleId, entityId, { entityName: originalEntityInfo.name }, originalEntityInfo);
+                }
+            }
+        } else if (actionType === 'move') {
+            await moveEntityToModule(entityId, moduleId, workspaceId, ownerId);
+            
+            // Remove o card visual do DOM do módulo de origem
+            const sourceCard = sourceModuleEl.querySelector(`.dropped-entity-card[data-entity-id="${entityId}"]`);
+            if (sourceCard) {
+                sourceCard.remove();
+            }
+            
+            // Renderiza o card no novo módulo
+            const entityInfo = getEntityById(entityId);
+            renderDroppedEntity(moduleId, entityId, { entityName }, entityInfo);
+            showSuccess('Entidade movida!', `"${entityName}" foi transferida.`);
+
+        } else { // actionType === 'add'
+            await saveEntityToModule(moduleId, entityId, entityName, workspaceId, ownerId);
+            const entityInfo = getEntityById(entityId);
+            renderDroppedEntity(moduleId, entityId, { entityName }, entityInfo);
+            showSuccess('Entidade adicionada!', `"${entityName}" foi adicionada ao módulo.`);
+        }
+    } catch (error) {
+        console.error('Erro na operação de drop:', error);
+        showError('Erro', 'Não foi possível completar a operação.');
+        // Se der erro, tenta restaurar o card na origem
+        const entityInfo = getEntityById(entityId);
+        if(sourceModuleId && entityInfo) {
+            renderDroppedEntity(sourceModuleId, entityId, { entityName }, entityInfo);
+        }
+    }
+}
+
+/**
+ * Mostra um diálogo perguntando se o usuário quer copiar ou mover a entidade
+ * @param {string} entityName - Nome da entidade
+ * @returns {Promise<string|null>} 'copy', 'move' ou null se cancelado
+ */
+async function showCopyOrMoveDialog(entityName) {
+    return new Promise((resolve) => {
+        Swal.fire({
+            title: `Mover "${entityName}"?`,
+            html: `
+                <div class="text-sm text-gray-600 mb-4">
+                    Escolha como deseja transferir esta entidade:
+                </div>
+                <div class="flex flex-col gap-3">
+                    <button id="copy-btn" class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors">
+                        <i data-lucide="copy" class="h-5 w-5 text-blue-600"></i>
+                        <div class="text-left">
+                            <div class="font-medium text-gray-900">Copiar</div>
+                            <div class="text-sm text-gray-500">Criar uma cópia no novo módulo</div>
+                        </div>
+                    </button>
+                    <button id="move-btn" class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-green-50 hover:border-green-300 transition-colors">
+                        <i data-lucide="move" class="h-5 w-5 text-green-600"></i>
+                        <div class="text-left">
+                            <div class="font-medium text-gray-900">Mover</div>
+                            <div class="text-sm text-gray-500">Transferir para o novo módulo</div>
+                        </div>
+                    </button>
+                </div>
+            `,
+            showConfirmButton: false,
+            showCancelButton: true,
+            cancelButtonText: 'Cancelar',
+            allowOutsideClick: false,
+            allowEscapeKey: true,
+            customClass: {
+                popup: 'swal2-popup-custom',
+                htmlContainer: 'swal2-html-custom'
+            },
+            didOpen: () => {
+                // Cria os ícones do Lucide
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+                
+                // Adiciona event listeners aos botões
+                document.getElementById('copy-btn').addEventListener('click', () => {
+                    Swal.close();
+                    resolve('copy');
+                });
+                
+                document.getElementById('move-btn').addEventListener('click', () => {
+                    Swal.close();
+                    resolve('move');
+                });
+            },
+            willClose: () => {
+                // Se chegou aqui sem ter clicado em copy ou move, foi cancelado
+                resolve(null);
+            }
+        });
+    });
 }
 
 async function handleFieldDrop(event) {
@@ -2193,14 +2283,7 @@ function getCurrentEntityBeingEdited() {
     };
 }
 
-/**
- * Obtém entidade por ID
- */
-function getEntityById(entityId) {
-    if (!window.actionBuilderData || !window.actionBuilderData.entities) return null;
-    
-    return window.actionBuilderData.entities.find(entity => entity.id === entityId);
-}
+
 
 /**
  * Manipula mudança na propriedade selecionada (O QUÊ)

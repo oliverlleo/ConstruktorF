@@ -244,6 +244,105 @@ export async function saveEntityToModule(moduleId, entityId, entityName, workspa
 }
 
 /**
+ * Copia uma entidade para outro módulo (cria uma nova instância)
+ * @param {string} sourceEntityId - ID da entidade origem
+ * @param {string} targetModuleId - ID do módulo de destino
+ * @param {string} workspaceId - ID da área de trabalho
+ * @param {string} ownerId - ID do dono da área de trabalho (opcional)
+ * @returns {Promise<string>} ID da nova entidade criada
+ */
+export async function copyEntityToModule(sourceEntityId, targetModuleId, workspaceId = 'default', ownerId = null) {
+    try {
+        showLoading('Copiando entidade e dados...');
+        const currentUserId = getUsuarioId();
+        const targetUserId = ownerId || currentUserId;
+        const entitiesCollectionPath = `users/${targetUserId}/workspaces/${workspaceId}/entities`;
+        const sourceEntityRef = db.doc(`${entitiesCollectionPath}/${sourceEntityId}`);
+
+        // 1. Obter a entidade original
+        const sourceEntityDoc = await sourceEntityRef.get();
+        if (!sourceEntityDoc.exists) {
+            throw new Error("Entidade de origem não encontrada.");
+        }
+        const sourceData = sourceEntityDoc.data();
+
+        // 2. Preparar dados para a nova entidade
+        const newEntityData = {
+            ...sourceData,
+            moduleId: targetModuleId,
+            name: `${sourceData.name} (Cópia)`,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+
+        // 3. Criar a nova entidade e obter sua referência
+        const newEntityRef = await db.collection(entitiesCollectionPath).add(newEntityData);
+        const newEntityId = newEntityRef.id;
+
+        // 4. Obter todos os registros da subcoleção da entidade original
+        const recordsSnapshot = await sourceEntityRef.collection('records').get();
+
+        // 5. Copiar todos os registros para a nova entidade usando um batch write para eficiência
+        if (!recordsSnapshot.empty) {
+            const batch = db.batch();
+            recordsSnapshot.docs.forEach(doc => {
+                const newRecordRef = newEntityRef.collection('records').doc(); // Cria um novo doc com ID automático
+                batch.set(newRecordRef, doc.data());
+            });
+            await batch.commit();
+            console.log(`${recordsSnapshot.size} registros copiados com sucesso.`);
+        }
+
+        // 6. Atualizar a lista local de entidades
+        if (!ownerId || ownerId === currentUserId) {
+            if (typeof allEntities !== 'undefined' && allEntities) {
+                allEntities.push({ ...newEntityData, id: newEntityId });
+            }
+        }
+        
+        hideLoading();
+        showSuccess('Copiado!', `A entidade e todos os seus dados foram copiados.`);
+
+        // Retorna os dados da nova entidade para a UI
+        return { id: newEntityId, name: newEntityData.name, icon: newEntityData.icon };
+
+    } catch (error) {
+        hideLoading();
+        console.error("Erro ao copiar entidade e seus dados:", error);
+        showError('Erro ao Copiar', 'Não foi possível copiar a entidade e seus dados.');
+        throw error;
+    }
+}
+
+/**
+ * Move uma entidade para outro módulo (transfere completamente)
+ * @param {string} entityId - ID da entidade
+ * @param {string} targetModuleId - ID do módulo de destino
+ * @param {string} workspaceId - ID da área de trabalho
+ * @param {string} ownerId - ID do dono da área de trabalho (opcional)
+ * @returns {Promise<void>}
+ */
+export async function moveEntityToModule(entityId, targetModuleId, workspaceId = 'default', ownerId = null) {
+    try {
+        const currentUserId = getUsuarioId();
+        const targetUserId = ownerId || currentUserId;
+        const entityPath = `users/${targetUserId}/workspaces/${workspaceId}/entities/${entityId}`;
+        
+        // Atualiza o moduleId da entidade para o novo módulo
+        await db.doc(entityPath).update({ 
+            moduleId: targetModuleId,
+            updatedAt: new Date().toISOString()
+        });
+        
+        console.log(`Entidade ${entityId} movida para o módulo ${targetModuleId}`);
+    } catch (error) {
+        console.error("Erro ao mover entidade:", error);
+        showError('Erro ao Mover', 'Não foi possível mover a entidade para o módulo.');
+        throw error;
+    }
+}
+
+/**
  * Remove uma entidade de um módulo
  * @param {string} moduleId - ID do módulo
  * @param {string} entityId - ID da entidade
@@ -408,12 +507,17 @@ export async function saveSubEntityStructure(moduleId, entityId, parentFieldId, 
     try {
         showLoading('Salvando estrutura...');
         
-        const schemaPath = getDbPath(workspaceId, ownerId, `schemas/${moduleId}/${entityId}`);
-        const parentSchemaSnapshot = await db.ref(schemaPath).get();
+        const currentUserId = getUsuarioId();
+        const targetUserId = ownerId || currentUserId;
+        const docPath = `users/${targetUserId}/workspaces/${workspaceId}/entities/${entityId}`;
         
-        if (parentSchemaSnapshot.exists()) {
-            const parentSchema = parentSchemaSnapshot.val();
-            const parentField = parentSchema.attributes.find(attr => attr.id === parentFieldId);
+        // Migrado para Firestore: busca a entidade
+        const docRef = db.doc(docPath);
+        const docSnap = await docRef.get();
+        
+        if (docSnap.exists()) {
+            const entityData = docSnap.data();
+            const parentField = entityData.attributes?.find(attr => attr.id === parentFieldId);
             
             if (parentField) {
                 // Certifique-se de que subSchema existe
@@ -421,7 +525,9 @@ export async function saveSubEntityStructure(moduleId, entityId, parentFieldId, 
                     parentField.subSchema = {};
                 }
                 parentField.subSchema.attributes = attributes;
-                await db.ref(schemaPath).set(parentSchema);
+                
+                // Atualiza a entidade com a nova estrutura de sub-entidade
+                await docRef.update({ attributes: entityData.attributes });
             }
         }
         
@@ -735,39 +841,41 @@ export async function loadSharedResources() {
         
         console.log("Carregando recursos compartilhados para o usuário:", userId);
         
-        // Verifica permissões do usuário
-        const accessControlSnapshot = await db.ref(`accessControl/${userId}`).get();
-        if (!accessControlSnapshot.exists()) {
+        // Migrado para Firestore: Verifica permissões do usuário
+        const accessControlDocRef = db.collection('accessControl').doc(userId);
+        const accessControlSnap = await accessControlDocRef.get();
+        
+        if (!accessControlSnap.exists()) {
             console.log("Nenhum recurso compartilhado encontrado para o usuário:", userId);
             sharedResources = [];
             return [];
         }
         
-        const accessControl = accessControlSnapshot.val();
+        const accessControl = accessControlSnap.data();
         console.log("Permissões encontradas:", accessControl);
         
         // Lista para armazenar os recursos compartilhados
         sharedResources = [];
         
         try {
-            // Busca todos os convites aceitos enviados para este usuário
-            const invitationsSnapshot = await db.ref('invitations')
-                .orderByChild('toEmail')
-                .equalTo(userEmail)
-                .once('value');
+            // Migrado para Firestore: Busca todos os convites aceitos enviados para este usuário
+            const invitationsSnapshot = await db.collection('invitations')
+                .where('toEmail', '==', userEmail)
+                .where('status', '==', 'accepted')
+                .get();
             
-            if (!invitationsSnapshot.exists()) {
-                console.log("Nenhum convite encontrado para o usuário:", userEmail);
+            if (invitationsSnapshot.empty) {
+                console.log("Nenhum convite aceito encontrado para o usuário:", userEmail);
                 return [];
             }
             
             // Processa cada convite
-            invitationsSnapshot.forEach(childSnapshot => {
-                const invite = childSnapshot.val();
+            invitationsSnapshot.forEach(doc => {
+                const invite = doc.data();
                 const resourceId = invite.resourceId;
                 
-                // Verifica se é um convite aceito e se o usuário tem permissão no accessControl
-                if (invite.status === 'accepted' && accessControl[resourceId]) {
+                // Verifica se o usuário tem permissão no accessControl
+                if (accessControl[resourceId]) {
                     // Adiciona o recurso à lista
                     sharedResources.push({
                         id: resourceId,
@@ -809,8 +917,14 @@ export async function checkResourceAccess(resourceId) {
         const userId = getUsuarioId();
         if (!userId) return null;
         
-        const snapshot = await db.ref(`accessControl/${userId}/${resourceId}`).get();
-        return snapshot.exists() ? snapshot.val() : null;
+        // Migrado para Firestore: usando db.collection() e db.doc()
+        const docRef = db.collection('accessControl').doc(userId);
+        const docSnap = await docRef.get();
+        
+        if (docSnap.exists() && docSnap.data()[resourceId]) {
+            return docSnap.data()[resourceId];
+        }
+        return null;
     } catch (error) {
         console.error("Erro ao verificar acesso ao recurso:", error);
         return null;
@@ -828,26 +942,26 @@ export async function loadSharedUserModules(ownerId, workspaceId = 'default') {
         if (!ownerId) {
             throw new Error('ID do usuário dono não fornecido');
         }
-        const modulesPath = getDbPath(workspaceId, ownerId, 'modules');
-        console.log(`Carregando módulos compartilhados de: ${modulesPath}`);
+        const collectionPath = `users/${ownerId}/workspaces/${workspaceId}/modules`;
+        console.log(`Carregando módulos compartilhados de: ${collectionPath}`);
         
-        const snapshot = await db.ref(modulesPath).get();
-        if (!snapshot.exists()) {
-            console.log(`Nenhum módulo encontrado em ${modulesPath}`);
+        // Migrado para Firestore: usando db.collection()
+        const snapshot = await db.collection(collectionPath).orderBy('order').get();
+        if (snapshot.empty) {
+            console.log(`Nenhum módulo encontrado em ${collectionPath}`);
             return [];
         }
         
-        const modules = snapshot.val();
         const modulesList = [];
         
-        for (const moduleId in modules) {
+        snapshot.forEach(doc => {
             modulesList.push({
-                id: moduleId,
-                ...modules[moduleId],
+                id: doc.id,
+                ...doc.data(),
                 isShared: true,
                 ownerId: ownerId
             });
-        }
+        });
         
         return modulesList;
     } catch (error) {
@@ -868,26 +982,26 @@ export async function loadSharedUserEntities(ownerId, workspaceId = 'default') {
         if (!ownerId) {
             throw new Error('ID do usuário dono não fornecido');
         }
-        const entitiesPath = getDbPath(workspaceId, ownerId, 'entities');
-        console.log(`Carregando entidades compartilhadas de: ${entitiesPath}`);
+        const collectionPath = `users/${ownerId}/workspaces/${workspaceId}/entities`;
+        console.log(`Carregando entidades compartilhadas de: ${collectionPath}`);
         
-        const snapshot = await db.ref(entitiesPath).get();
-        if (!snapshot.exists()) {
-            console.log(`Nenhuma entidade encontrada em ${entitiesPath}`);
+        // Migrado para Firestore: usando db.collection()
+        const snapshot = await db.collection(collectionPath).get();
+        if (snapshot.empty) {
+            console.log(`Nenhuma entidade encontrada em ${collectionPath}`);
             return [];
         }
         
-        const entities = snapshot.val();
         const entitiesList = [];
         
-        for (const entityId in entities) {
+        snapshot.forEach(doc => {
             entitiesList.push({
-                id: entityId,
-                ...entities[entityId],
+                id: doc.id,
+                ...doc.data(),
                 isShared: true,
                 ownerId: ownerId
             });
-        }
+        });
         
         return entitiesList;
     } catch (error) {
@@ -909,16 +1023,28 @@ export async function loadSharedModuleSchemas(ownerId, workspaceId = 'default', 
         if (!ownerId || !moduleId) {
             throw new Error('Parâmetros necessários não fornecidos');
         }
-        const schemasPath = getDbPath(workspaceId, ownerId, `schemas/${moduleId}`);
-        console.log(`Carregando esquemas compartilhados de: ${schemasPath}`);
+        const collectionPath = `users/${ownerId}/workspaces/${workspaceId}/entities`;
+        console.log(`Carregando esquemas compartilhados de: ${collectionPath} (módulo: ${moduleId})`);
         
-        const snapshot = await db.ref(schemasPath).get();
-        if (!snapshot.exists()) {
-            console.log(`Nenhum esquema encontrado em ${schemasPath}`);
+        // Migrado para Firestore: busca entidades do módulo específico
+        const snapshot = await db.collection(collectionPath)
+            .where('moduleId', '==', moduleId)
+            .get();
+        
+        if (snapshot.empty) {
+            console.log(`Nenhum esquema encontrado para o módulo ${moduleId}`);
             return {};
         }
         
-        return snapshot.val();
+        const schemas = {};
+        snapshot.forEach(doc => {
+            schemas[doc.id] = {
+                id: doc.id,
+                ...doc.data()
+            };
+        });
+        
+        return schemas;
     } catch (error) {
         console.error("Erro ao carregar esquemas compartilhados:", error);
         return {};
@@ -938,16 +1064,19 @@ export async function loadStructureForEntityShared(moduleId, entityId, workspace
         if (!ownerId) {
             throw new Error('ID do usuário dono não fornecido');
         }
-        const structurePath = getDbPath(workspaceId, ownerId, `schemas/${moduleId}/${entityId}`);
-        console.log(`Carregando estrutura compartilhada de: ${structurePath}`);
+        const docPath = `users/${ownerId}/workspaces/${workspaceId}/entities/${entityId}`;
+        console.log(`Carregando estrutura compartilhada de: ${docPath}`);
         
-        const snapshot = await db.ref(structurePath).get();
-        if (!snapshot.exists()) {
-            console.log(`Estrutura não encontrada em ${structurePath}`);
+        // Migrado para Firestore: usando db.doc()
+        const docRef = db.doc(docPath);
+        const docSnap = await docRef.get();
+        
+        if (!docSnap.exists()) {
+            console.log(`Estrutura não encontrada em ${docPath}`);
             return null;
         }
         
-        return snapshot.val();
+        return docSnap.data();
     } catch (error) {
         console.error("Erro ao carregar estrutura da entidade compartilhada:", error);
         return null;
