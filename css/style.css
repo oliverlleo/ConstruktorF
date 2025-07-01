@@ -1,0 +1,1180 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f8fafc;
+}
+
+/* Modo Escuro */
+.dark body {
+    background-color: #1e293b;
+    color: #e2e8f0;
+}
+
+/* Configuração do modo escuro */
+@media (prefers-color-scheme: dark) {
+    .dark {
+        color-scheme: dark;
+    }
+}
+
+/* Transições suaves para mudança de tema */
+*, *::before, *::after {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Estilos específicos para modo escuro */
+.dark .bg-white {
+    background-color: #334155 !important;
+}
+
+.dark .bg-slate-50 {
+    background-color: #1e293b !important;
+}
+
+.dark .bg-slate-100 {
+    background-color: #475569 !important;
+}
+
+.dark .text-slate-800 {
+    color: #e2e8f0 !important;
+}
+
+.dark .text-slate-700 {
+    color: #cbd5e1 !important;
+}
+
+.dark .text-slate-600 {
+    color: #94a3b8 !important;
+}
+
+.dark .text-slate-500 {
+    color: #64748b !important;
+}
+
+.dark .border-slate-200 {
+    border-color: #475569 !important;
+}
+
+.dark .border-slate-300 {
+    border-color: #64748b !important;
+}
+
+.dark .shadow-sm {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark .shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark .shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark .shadow-xl {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Modo escuro para específicos elementos da página de login */
+.dark .notion-auth-container {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+}
+
+.dark .notion-auth-form {
+    background-color: #334155 !important;
+    border: 1px solid #64748b;
+}
+
+/* Corrigir cor do título Construktor na página de login */
+.dark .notion-auth-header h1 {
+    color: white !important;
+}
+
+.dark .notion-input {
+    background-color: #475569 !important;
+    border-color: #64748b !important;
+    color: #e2e8f0 !important;
+}
+
+.dark .notion-input:focus {
+    background-color: #64748b !important;
+    border-color: #6366f1 !important;
+}
+
+.dark .notion-social-btn {
+    background-color: #475569 !important;
+    border-color: #64748b !important;
+    color: #e2e8f0 !important;
+}
+
+.dark .notion-social-btn:hover {
+    background-color: #64748b !important;
+}
+
+.dark .notion-auth-tab {
+    color: #94a3b8 !important;
+}
+
+.dark .notion-auth-tab.active {
+    color: #e2e8f0 !important;
+}
+
+.dark .notion-divider-line {
+    background-color: #64748b !important;
+}
+
+.dark .notion-code-input {
+    background-color: #475569 !important;
+    border-color: #64748b !important;
+    color: #e2e8f0 !important;
+}
+
+.dark .notion-code-input:focus {
+    background-color: #64748b !important;
+    border-color: #6366f1 !important;
+}
+
+/* Hover states para modo escuro */
+.dark .hover\:bg-slate-100:hover {
+    background-color: #64748b !important;
+}
+
+.dark .hover\:bg-slate-50:hover {
+    background-color: #475569 !important;
+}
+
+.dark .hover\:text-slate-600:hover {
+    color: #94a3b8 !important;
+}
+
+.dark .hover\:text-slate-700:hover {
+    color: #cbd5e1 !important;
+}
+
+/* Modo escuro para gradientes */
+.dark .bg-gradient-to-r.from-indigo-500.to-purple-600 {
+    background: linear-gradient(to right, #4f46e5, #7c3aed) !important;
+}
+
+.dark .bg-gradient-to-r.from-indigo-600.to-purple-600 {
+    background: linear-gradient(to right, #4338ca, #7c3aed) !important;
+}
+
+.dark .bg-gradient-to-r.from-green-600.to-teal-600 {
+    background: linear-gradient(to right, #059669, #0d9488) !important;
+}
+
+/* Correção para áreas de drop de entidades nos módulos */
+.dark .entities-dropzone {
+    background: linear-gradient(to bottom, #334155 0%, #1e293b 100%) !important;
+}
+
+.dark .bg-gradient-to-b.from-indigo-50\/50.to-white {
+    background: linear-gradient(to bottom, #334155 0%, #1e293b 100%) !important;
+}
+
+/* Estados especiais para modo escuro */
+.dark .bg-indigo-50 {
+    background-color: #1e1b4b !important;
+}
+
+.dark .text-indigo-700 {
+    color: #a5b4fc !important;
+}
+
+.dark .bg-indigo-100 {
+    background-color: #312e81 !important;
+}
+
+.dark .text-indigo-600 {
+    color: #818cf8 !important;
+}
+
+.dark .text-indigo-800 {
+    color: #e2e8f0 !important;
+}
+
+.dark .bg-amber-50 {
+    background-color: #451a03 !important;
+}
+
+.dark .text-amber-800 {
+    color: #fbbf24 !important;
+}
+
+.dark .border-amber-200 {
+    border-color: #92400e !important;
+}
+
+.dark .text-amber-500 {
+    color: #f59e0b !important;
+}
+
+/* Elementos específicos do sistema */
+.dark .entities-dropzone:empty::after {
+    color: #64748b !important;
+    border-color: #475569 !important;
+}
+
+.dark #form-builder-dropzone:empty::after {
+    color: #64748b !important;
+}
+
+/* Loading overlay em modo escuro */
+.dark .loading-overlay {
+    background-color: rgba(30, 41, 59, 0.9) !important;
+}
+
+#workspace-select {
+  /* Esta é a regra que faltava: */
+  /* Força o select a poder encolher, ignorando a largura do seu conteúdo. */
+  min-width: 0;
+}
+
+/* Modo escuro para selects */
+.dark select {
+    background-color: #475569 !important;
+    border-color: #64748b !important;
+    color: #e2e8f0 !important;
+}
+
+.dark select:focus {
+    border-color: #6366f1 !important;
+}
+
+/* Loading Animation */
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    backdrop-filter: blur(8px);
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e0e7ff;
+    border-bottom-color: #6366f1;
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+}
+
+.dark .spinner {
+    border-color: #475569;
+    border-bottom-color: #818cf8;
+}
+
+@media (min-width: 640px) {
+    .spinner {
+        width: 56px;
+        height: 56px;
+        border-width: 5px;
+    }
+}
+
+@keyframes rotation {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Drag and Drop Styles */
+.sortable-ghost {
+    opacity: 0.5;
+    background-color: #e0e7ff !important;
+    border: 2px dashed #6366f1 !important;
+    box-shadow: none !important;
+}
+
+.dark .sortable-ghost {
+    background-color: #1e1b4b !important;
+    border-color: #818cf8 !important;
+}
+
+.sortable-drag { 
+    opacity: 1 !important; 
+    cursor: grabbing;
+    transform: scale(1.02);
+    z-index: 1000; /* Maior z-index para garantir visibilidade */
+}
+
+.sortable-chosen {
+    background-color: #f5f5ff;
+}
+
+.dark .sortable-chosen {
+    background-color: #1e1b4b;
+}
+
+/* Melhoria para drag and drop em dispositivos móveis */
+.touch-action-none {
+    touch-action: none !important; /* Previne scroll do navegador durante o drag */
+}
+
+/* Melhor feedback visual para toque em dispositivos móveis */
+@media (max-width: 640px) {
+    .entity-card {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    .entity-card:active,
+    .entity-card.active-touch {
+        transform: scale(1.03);
+        background-color: #f8fafc;
+        border-color: #6366f1;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .sortable-drag {
+        transform: scale(1.05) !important; /* Maior para melhor visualização */
+        opacity: 0.9 !important; /* Mais transparente para ver onde vai cair */
+    }
+    
+    .sortable-ghost {
+        opacity: 0.7 !important; /* Mais visível em mobile */
+        border-width: 3px !important;
+    }
+    
+    /* Melhoria específica para containers de entidades em mobile */
+    .entities-dropzone {
+        min-height: 120px !important;
+        border: 1px dashed rgba(99, 102, 241, 0.2);
+    }
+    
+    /* Feedback visual quando uma dropzone pode receber itens */
+    .entities-dropzone.sortable-active {
+        background-color: rgba(99, 102, 241, 0.05) !important;
+        border: 1px dashed rgba(99, 102, 241, 0.5) !important;
+    }
+}
+
+.toolbox-item {
+    cursor: grab;
+    transition: all 0.2s ease-in-out;
+    touch-action: none; /* Melhora o comportamento de toque em dispositivos móveis */
+}
+
+.toolbox-item:hover {
+    transform: translateY(-2px);
+}
+
+.toolbox-item:active {
+    cursor: grabbing;
+}
+
+.toolbox-item[data-field-type="relationship"],
+.toolbox-item[data-field-type="sub-entity"] {
+    background-color: #eef2ff;
+    border-color: #c7d2fe;
+}
+
+.dark .toolbox-item[data-field-type="relationship"],
+.dark .toolbox-item[data-field-type="sub-entity"] {
+    background-color: #1e1b4b;
+    border-color: #312e81;
+}
+
+/* Animation for new elements */
+@keyframes highlight-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+
+.animate-pulse {
+    animation: highlight-pulse 2s 1;
+}
+
+/* Animação para dicas */
+@keyframes tip-fade-in {
+    0% { opacity: 0; transform: translateY(-10px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+#welcome-tip, #quick-tip, #modules-tip {
+    animation: tip-fade-in 0.5s ease-out;
+}
+
+.close-tip-btn {
+    transition: all 0.2s ease;
+}
+
+.close-tip-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Estilos para o Hub de Visualização */
+.view-tab {
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.view-tab.active {
+    color: #4f46e5; /* indigo-600 */
+    background-color: rgba(79, 70, 229, 0.05);
+}
+
+.dark .view-tab.active {
+    color: #818cf8;
+    background-color: rgba(129, 140, 248, 0.1);
+}
+
+/* Estilos para o Kanban Board */
+.kanban-column {
+    min-width: 280px;
+    max-width: 280px;
+    background-color: #f8fafc; /* slate-50 */
+    border-radius: 0.5rem;
+    border: 1px solid #e2e8f0; /* slate-200 */
+}
+
+.dark .kanban-column {
+    background-color: #1e293b;
+    border-color: #475569;
+}
+
+.kanban-column-header {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e2e8f0; /* slate-200 */
+    background-color: #f1f5f9; /* slate-100 */
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.dark .kanban-column-header {
+    border-color: #475569;
+    background-color: #475569;
+}
+
+.kanban-items {
+    min-height: 200px;
+    padding: 0.5rem;
+}
+
+.kanban-item {
+    margin-bottom: 0.5rem;
+    background-color: white;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0; /* slate-200 */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    cursor: grab;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dark .kanban-item {
+    background-color: #334155;
+    border-color: #64748b;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.kanban-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.dark .kanban-item:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Estilos para a visualização em galeria */
+.gallery-item {
+    background-color: white;
+    border-radius: 0.5rem;
+    border: 1px solid #e2e8f0; /* slate-200 */
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dark .gallery-item {
+    background-color: #334155;
+    border-color: #64748b;
+}
+
+.gallery-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.05);
+}
+
+.dark .gallery-item:hover {
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+}
+
+.gallery-item-header {
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0; /* slate-200 */
+}
+
+.dark .gallery-item-header {
+    border-color: #475569;
+}
+
+.gallery-item-body {
+    padding: 1rem;
+}
+
+.gallery-item-footer {
+    padding: 0.75rem 1rem;
+    background-color: #f8fafc; /* slate-50 */
+    border-top: 1px solid #e2e8f0; /* slate-200 */
+}
+
+.dark .gallery-item-footer {
+    background-color: #1e293b;
+    border-color: #475569;
+}
+
+/* Estilos para a tabela responsiva */
+.table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 640px) {
+    .table-responsive th, 
+    .table-responsive td {
+        white-space: nowrap;
+    }
+}
+
+/* Estilos para elementos arrastáveis (Sortable.js) */
+.sortable-ghost {
+    opacity: 0.4;
+    background-color: rgba(99, 102, 241, 0.1) !important;
+    border: 2px dashed rgba(99, 102, 241, 0.5) !important;
+}
+
+.sortable-chosen {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.dark .sortable-chosen {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+.sortable-drag {
+    cursor: grabbing;
+    opacity: 0.9;
+    transform: scale(1.02);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.dark .sortable-drag {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.module-quadro {
+    cursor: grab;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.module-quadro:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.dark .module-quadro:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Empty States */
+#empty-form-state:only-child {
+    display: flex;
+}
+
+#form-builder-dropzone:empty + #empty-form-state {
+    display: flex;
+}
+
+#module-container:empty + #empty-state {
+    display: flex;
+}
+
+/* Improved Scrollbars */
+.no-scrollbar::-webkit-scrollbar { 
+    width: 4px;
+    height: 4px;
+}
+
+@media (min-width: 640px) {
+    .no-scrollbar::-webkit-scrollbar { 
+        width: 6px;
+        height: 6px;
+    }
+}
+
+.no-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.no-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(203, 213, 225, 0.5);
+    border-radius: 3px;
+}
+
+.dark .no-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(100, 116, 139, 0.5);
+}
+
+.no-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(148, 163, 184, 0.7);
+}
+
+.dark .no-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(148, 163, 184, 0.7);
+}
+
+/* Modal Animations */
+#entity-builder-modal .bg-white {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#entity-builder-modal.hidden .bg-white {
+    transform: scale(0.95);
+    opacity: 0;
+}
+
+/* Transitions for hover states */
+.module-quadro,
+.entity-card,
+.dropped-entity-card,
+.form-field-card,
+button {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Custom effects */
+.shadow-highlight {
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+}
+
+.dark .shadow-highlight {
+    box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.3);
+}
+
+/* Button hover effects */
+button:active {
+    transform: translateY(1px);
+}
+
+/* Entity cards with no-results states */
+.entities-dropzone:empty::after {
+    content: 'Sem entidades';
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80px;
+    width: 100%;
+    color: #94a3b8;
+    font-size: 0.75rem;
+    font-style: italic;
+    border: 2px dashed #e2e8f0;
+    border-radius: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+@media (min-width: 640px) {
+    .entities-dropzone:empty::after {
+        content: 'Sem entidades neste módulo';
+        height: 100px;
+        font-size: 0.875rem;
+    }
+}
+
+#form-builder-dropzone:empty::after {
+    content: 'Arraste campos aqui';
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80px;
+    width: 100%;
+    color: #94a3b8;
+    font-size: 0.75rem;
+    font-style: italic;
+}
+
+@media (min-width: 640px) {
+    #form-builder-dropzone:empty::after {
+        content: 'Arraste campos aqui para criar o formulário';
+        height: 100px;
+        font-size: 0.875rem;
+    }
+}
+
+/* Mobile Sidebar Toggle */
+#desktop-sidebar {
+    transition: transform 0.3s ease-in-out;
+}
+
+/* Floating drag style */
+.floating-drag {
+    transition: all 0.2s ease-in-out !important;
+}
+
+/* Melhorias de responsividade mobile */
+@media (max-width: 640px) {
+    .entity-card {
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .entity-name {
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+    }
+    
+    .shared-resource-item {
+        padding: 0.75rem;
+    }
+    
+    .shared-resource-item .font-medium {
+        font-size: 0.875rem;
+    }
+    
+    .access-shared-resource-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+    }
+    
+    /* Melhora do botão de atualizar compartilhados */
+    #refresh-shared-resources {
+        min-width: auto;
+        padding: 0.375rem 0.5rem;
+    }
+    
+    /* Ajustes para templates de recursos compartilhados */
+    .shared-access-item, .shared-resource-item {
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .shared-access-item .user-email,
+    .shared-resource-item .shared-resource-owner {
+        font-size: 0.8rem;
+    }
+    
+    /* Melhor responsividade para botões pequenos */
+    .bg-emerald-50 {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* Modal sidebar toggle */
+#modal-sidebar-container {
+    transition: height 0.3s ease-in-out;
+}
+
+#modal-sidebar-container.open #modal-sidebar-content {
+    display: block;
+}
+
+/* Limitação de texto em elementos móveis */
+.module-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 150px;
+}
+
+/* Permitir quebra de linha para nomes de entidades */
+.entity-name {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+    max-width: 150px;
+    line-height: 1.2;
+}
+
+/* Estilos para redimensionamento da barra lateral */
+#resize-handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background-color: rgba(99, 102, 241, 0.3);
+    cursor: col-resize;
+    z-index: 30;
+    transition: all 0.2s ease;
+    left: 320px; /* 80 * 4 = 320px (20rem) */
+    display: none; /* Oculto por padrão */
+}
+
+/* Apenas mostrar em telas maiores (sm:) */
+@media (min-width: 640px) {
+    #resize-handle {
+        display: block;
+    }
+}
+
+#resize-handle:hover {
+    background-color: rgba(99, 102, 241, 0.5);
+    width: 6px;
+}
+
+#resize-handle.resizing {
+    background-color: rgba(99, 102, 241, 0.8) !important;
+    width: 6px !important;
+}
+
+/* Evita seleção de texto durante redimensionamento */
+.select-none {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.cursor-col-resize {
+    cursor: col-resize !important;
+}
+
+.cursor-col-resize * {
+    cursor: col-resize !important;
+}
+
+/* Melhorias para o drag and drop */
+.dragging {
+    opacity: 0.8;
+    transform: scale(1.02);
+    z-index: 1000;
+}
+
+.sortable-ghost {
+    opacity: 0.4;
+    background-color: rgba(99, 102, 241, 0.1) !important;
+    border: 2px dashed rgba(99, 102, 241, 0.5) !important;
+}
+
+.sortable-chosen {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.sortable-drag {
+    cursor: grabbing !important;
+    transform: scale(1.05);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+@media (min-width: 640px) {
+    .module-title {
+        max-width: 200px;
+    }
+    
+    .entity-name {
+        max-width: 200px;
+    }
+}
+
+/* Breadcrumb responsivo */
+#modal-breadcrumb {
+    max-width: 180px;
+}
+
+@media (min-width: 640px) {
+    #modal-breadcrumb {
+        max-width: none;
+    }
+}
+
+/* Estilos para a página de login */
+.auth-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f0f4ff 0%, #e5e9ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.auth-card {
+    background-color: white;
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 450px;
+    overflow: hidden;
+}
+
+.auth-header {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    padding: 2rem;
+    text-align: center;
+    color: white;
+}
+
+.auth-tabs {
+    display: flex;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.auth-tab {
+    flex: 1;
+    text-align: center;
+    padding: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    color: #64748b;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.auth-tab.active {
+    color: #6366f1;
+    border-bottom-color: #6366f1;
+}
+
+.auth-content {
+    padding: 2rem;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.auth-social-btn {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.auth-google-btn {
+    background-color: white;
+    color: #4285f4;
+    border: 1px solid #e2e8f0;
+}
+
+.auth-google-btn:hover {
+    background-color: #f8fafc;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.auth-phone-btn {
+    background-color: white;
+    color: #10b981;
+    border: 1px solid #e2e8f0;
+}
+
+.auth-phone-btn:hover {
+    background-color: #f8fafc;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.auth-input {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.auth-input label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #475569;
+}
+
+.auth-input input {
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.auth-input input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.auth-submit-btn {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.auth-submit-btn:hover {
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
+.auth-submit-btn:active {
+    transform: translateY(1px);
+}
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.auth-divider-line {
+    flex: 1;
+    height: 1px;
+    background-color: #e2e8f0;
+}
+
+.auth-divider-text {
+    color: #94a3b8;
+    font-size: 0.875rem;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.875rem;
+    color: #64748b;
+}
+
+.auth-footer a {
+    color: #6366f1;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Estilos para o componente de verificação por telefone */
+.phone-verification {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.verification-code-container {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.verification-code-input {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.25rem;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+}
+
+.verification-code-input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.resend-code {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    color: #64748b;
+}
+
+.resend-code button {
+    color: #6366f1;
+    font-weight: 500;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.resend-code button:hover {
+    text-decoration: underline;
+}
+
+/* Estilos para páginas de código */
+pre {
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    font-family: 'Fira Code', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.code-container {
+    max-height: 600px;
+    overflow-y: auto;
+    border-radius: 0.5rem;
+}
+
+.code-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.code-container::-webkit-scrollbar-track {
+    background: #2d333b;
+}
+
+.code-container::-webkit-scrollbar-thumb {
+    background-color: #444c56;
+    border-radius: 4px;
+}
+
+.code-container::-webkit-scrollbar-thumb:hover {
+    background-color: #555f6a;
+}
+
+.tab-button {
+    position: relative;
+    transition: all 0.2s;
+}
+
+.tab-button.active::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #6366f1;
+    border-radius: 2px;
+}
+
+@media (max-width: 640px) {
+    .code-container {
+        max-height: 400px;
+    }
+}
+
+@media (max-width: 640px) {
+    #entity-builder-modal {
+        padding: 0;
+    }
+}
+
+@media (max-width: 640px) {
+  #swal-input-name {
+    margin-left: -1.25rem;
+    margin-right: -1.25rem;
+    width: calc(100% + 2.5rem);
+  }
+}
+
+/* Regra para truncar texto */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
