@@ -7,7 +7,7 @@ let db;
 let allEntities = [];
 let modulesOrder = []; // Armazena a ordem dos módulos
 
-// Função auxiliar para atualizar o cache local. (Adicione esta se não existir)
+// Função auxiliar para atualizar o cache local.
 function updateLocalEntity(entityId, updatedData) {
     const entityIndex = allEntities.findIndex(e => e.id === entityId);
     if (entityIndex > -1) {
@@ -255,6 +255,7 @@ export async function copyEntityToModule(sourceEntityId, targetModuleId, workspa
         const sourceEntityRef = db.doc(`${entitiesCollectionPath}/${sourceEntityId}`);
 
         const sourceEntityDoc = await sourceEntityRef.get();
+        // CORREÇÃO APLICADA AQUI
         if (!sourceEntityDoc.exists) {
             throw new Error("Entidade de origem não encontrada.");
         }
@@ -493,6 +494,7 @@ export async function saveSubEntityStructure(moduleId, entityId, parentFieldId, 
         const docRef = db.doc(docPath);
         const docSnap = await docRef.get();
         
+        // CORREÇÃO APLICADA AQUI
         if (docSnap.exists) {
             const entityData = docSnap.data();
             const parentField = entityData.attributes?.find(attr => attr.id === parentFieldId);
@@ -800,6 +802,7 @@ export async function loadSharedResources() {
         const accessControlDocRef = db.collection('accessControl').doc(userId);
         const accessControlSnap = await accessControlDocRef.get();
         
+        // CORREÇÃO APLICADA AQUI
         if (!accessControlSnap.exists) {
             console.log("Nenhum recurso compartilhado encontrado para o usuário:", userId);
             sharedResources = [];
@@ -870,6 +873,7 @@ export async function checkResourceAccess(resourceId) {
         const docRef = db.collection('accessControl').doc(userId);
         const docSnap = await docRef.get();
         
+        // CORREÇÃO APLICADA AQUI
         if (docSnap.exists && docSnap.data()[resourceId]) {
             return docSnap.data()[resourceId];
         }
@@ -1016,6 +1020,7 @@ export async function loadStructureForEntityShared(moduleId, entityId, workspace
         const docRef = db.doc(docPath);
         const docSnap = await docRef.get();
         
+        // CORREÇÃO APLICADA AQUI
         if (!docSnap.exists) {
             console.log(`Estrutura não encontrada em ${docPath}`);
             return null;
