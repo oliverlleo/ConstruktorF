@@ -251,19 +251,14 @@ async function manageInvite(inviteId, action) {
         let updateData = {};
 
         if (action === 'accept') {
-            // A única responsabilidade do cliente é marcar como aceito e registrar quem aceitou.
-            // A Cloud Function 'onInviteAccepted' fará o resto.
             updateData = {
                 status: 'accepted',
                 acceptedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                toUserId: getUsuarioId() // Guarda o ID do usuário que aceitou
+                toUserId: getUsuarioId() 
             };
         } else if (action === 'revoke') {
-            // A lógica de revogar acesso deve ser feita por uma Cloud Function para segurança.
-            // Por agora, apenas marcamos o convite como revogado.
             updateData = { status: 'revoked' };
         } else {
-            // Para 'decline' ou 'cancel'
             updateData = { status: action === 'decline' ? 'declined' : 'canceled' };
         }
         
@@ -272,7 +267,6 @@ async function manageInvite(inviteId, action) {
         hideLoading();
         showSuccess('Sucesso!', 'O convite foi processado.');
 
-        // Recarrega a aba atual
         if (activeTab === 'access') loadSharedAccess();
         else loadInvites(activeTab);
         
@@ -286,30 +280,18 @@ async function manageInvite(inviteId, action) {
 }
 
 /**
+ * **CORRIGIDO**
  * Atualiza a permissão de um utilizador.
+ * Apenas atualiza o 'role' no convite. A Cloud Function cuidará do resto.
  * @param {string} inviteId - O ID do convite original aceite
  * @param {string} newRole - A nova permissão
  */
 async function updateUserPermission(inviteId, newRole) {
     showLoading('Atualizando permissão...');
     try {
-        const inviteSnapshot = await db.doc(`invitations/${inviteId}`).get();
-        if (!inviteSnapshot.exists) throw new Error("Convite não encontrado");
-        
-        const inviteData = inviteSnapshot.data();
-        if (inviteData.fromUserId !== getUsuarioId()) throw new Error("Apenas o dono do convite pode alterar a permissão.");
-        if (inviteData.status !== 'accepted') throw new Error("Só é possível alterar permissões de convites já aceitos.");
-        
-        const invitedUserId = inviteData.toUserId;
-        if (!invitedUserId) throw new Error("O ID do usuário convidado não foi encontrado.");
+        const inviteRef = db.doc(`invitations/${inviteId}`);
+        await inviteRef.update({ role: newRole });
 
-        const batch = db.batch();
-        batch.update(db.doc(`invitations/${inviteId}`), { role: newRole });
-        batch.update(db.doc(`accessControl/${invitedUserId}`), {
-            [inviteData.resourceId]: newRole
-        });
-
-        await batch.commit();
         hideLoading();
         showSuccess('Permissão atualizada!');
         loadSharedAccess();
@@ -317,7 +299,7 @@ async function updateUserPermission(inviteId, newRole) {
     } catch (error) {
         console.error('Erro ao atualizar permissão:', error);
         hideLoading();
-        showError('Erro na Atualização', error.message);
+        showError('Erro na Atualização', 'Ocorreu um erro ao atualizar a permissão. Verifique as regras de segurança.');
     }
 }
 
@@ -347,7 +329,7 @@ async function loadInvites(type) {
             invites = invites.filter(invite => invite.status === 'pending');
         }
         
-        renderInvites(invites.sort((a,b) => b.createdAt - a.createdAt), type);
+        renderInvites(invites.sort((a,b) => b.createdAt.seconds - a.createdAt.seconds), type);
         hideLoading();
     } catch (error) {
         hideLoading();
@@ -453,7 +435,7 @@ async function loadSharedAccess() {
             sharedAccess.push({ id: doc.id, ...doc.data() });
         });
         
-        renderSharedAccess(sharedAccess.sort((a, b) => (b.acceptedAt || 0) - (a.acceptedAt || 0)));
+        renderSharedAccess(sharedAccess.sort((a, b) => (b.acceptedAt.seconds || 0) - (a.acceptedAt.seconds || 0)));
         hideLoading();
     } catch (error) {
         hideLoading();
@@ -511,8 +493,8 @@ function formatPermission(role) {
 }
 
 function formatDate(timestamp) {
-    if (!timestamp) return 'Data desconhecida';
-    const date = new Date(timestamp.seconds * 1000); // Converte timestamp do Firestore
+    if (!timestamp || typeof timestamp.seconds !== 'number') return 'Data desconhecida';
+    const date = new Date(timestamp.seconds * 1000);
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
