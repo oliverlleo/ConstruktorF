@@ -139,13 +139,6 @@ export async function loadAndRenderModules(renderCallback, workspaceId = 'defaul
     }
 }
 
-// FUNÇÃO ELIMINADA: loadDroppedEntitiesIntoModules
-// No novo modelo Firestore, as entidades já contêm o moduleId e attributes
-// A renderização será feita no main.js filtrando as entidades por moduleId
-
-// FUNÇÃO ELIMINADA: loadStructureForEntity  
-// No novo modelo Firestore, a estrutura (attributes) já vem carregada com a entidade
-
 /**
  * Cria uma nova entidade na área de trabalho atual
  * @param {Object} entityData - Dados da nova entidade
@@ -161,7 +154,6 @@ export async function createEntity(entityData, workspaceId = 'default', ownerId 
         const targetUserId = ownerId || currentUserId;
         const collectionPath = `users/${targetUserId}/workspaces/${workspaceId}/entities`;
         
-        // Adiciona campos obrigatórios para o novo modelo
         const entityDataWithDefaults = {
             ...entityData,
             attributes: entityData.attributes || [],
@@ -170,7 +162,6 @@ export async function createEntity(entityData, workspaceId = 'default', ownerId 
         
         const docRef = await db.collection(collectionPath).add(entityDataWithDefaults);
         
-        // Atualiza a lista local apenas se for do usuário atual
         if (!ownerId || ownerId === currentUserId) {
             allEntities.push({ ...entityDataWithDefaults, id: docRef.id });
         }
@@ -200,7 +191,6 @@ export async function createModule(name, workspaceId = 'default', ownerId = null
         const targetUserId = ownerId || currentUserId;
         const collectionPath = `users/${targetUserId}/workspaces/${workspaceId}/modules`;
         
-        // Primeiro, pega o número atual de módulos para definir a ordem
         const existingModules = await db.collection(collectionPath).get();
         const nextOrder = existingModules.size;
         
@@ -211,7 +201,6 @@ export async function createModule(name, workspaceId = 'default', ownerId = null
         
         const docRef = await db.collection(collectionPath).add(newModuleData);
         
-        // Atualiza a ordem local apenas se for do usuário atual
         if (!ownerId || ownerId === currentUserId) {
             modulesOrder.push(docRef.id);
         }
@@ -241,7 +230,6 @@ export async function saveEntityToModule(moduleId, entityId, entityName, workspa
         const targetUserId = ownerId || currentUserId;
         const docPath = `users/${targetUserId}/workspaces/${workspaceId}/entities/${entityId}`;
         
-        // Atualiza o campo moduleId na entidade
         await db.doc(docPath).update({ moduleId: moduleId });
         
         console.log(`Entidade ${entityId} associada ao módulo ${moduleId}`);
@@ -258,9 +246,8 @@ export async function saveEntityToModule(moduleId, entityId, entityName, workspa
  * @param {string} targetModuleId - ID do módulo de destino
  * @param {string} workspaceId - ID da área de trabalho
  * @param {string} ownerId - ID do dono da área de trabalho (opcional)
- * @returns {Promise<string>} ID da nova entidade criada
+ * @returns {Promise<object>} Objeto da nova entidade criada
  */
-// SUBSTITUA a sua função copyEntityToModule por esta:
 export async function copyEntityToModule(sourceEntityId, targetModuleId, workspaceId = 'default', ownerId = null) {
     try {
         showLoading('Copiando entidade e dados...');
@@ -322,7 +309,6 @@ export async function copyEntityToModule(sourceEntityId, targetModuleId, workspa
  * @param {string} ownerId - ID do dono da área de trabalho (opcional)
  * @returns {Promise<void>}
  */
-// SUBSTITUA a sua função moveEntityToModule por esta:
 export async function moveEntityToModule(entityId, targetModuleId, workspaceId = 'default', ownerId = null) {
     try {
         const currentUserId = getUsuarioId();
@@ -336,7 +322,6 @@ export async function moveEntityToModule(entityId, targetModuleId, workspaceId =
 
         await db.doc(entityPath).update(updateData);
 
-        // Atualiza o cache local para refletir a mudança
         updateLocalEntity(entityId, { moduleId: targetModuleId });
         
         console.log(`Entidade ${entityId} movida para o módulo ${targetModuleId}`);
@@ -361,7 +346,6 @@ export async function deleteEntityFromModule(moduleId, entityId, workspaceId = '
         const targetUserId = ownerId || currentUserId;
         const docPath = `users/${targetUserId}/workspaces/${workspaceId}/entities/${entityId}`;
         
-        // Remove a associação com o módulo (define moduleId como null)
         await db.doc(docPath).update({ moduleId: null });
         
         console.log(`Entidade ${entityId} removida do módulo ${moduleId}`);
@@ -387,14 +371,10 @@ export async function deleteEntity(entityId, workspaceId = 'default', ownerId = 
         const targetUserId = ownerId || currentUserId;
         const entityPath = `users/${targetUserId}/workspaces/${workspaceId}/entities/${entityId}`;
         
-        // Exclui a entidade (isso NÃO exclui automaticamente a subcoleção records no Firestore)
         await db.doc(entityPath).delete();
         
-        // ATENÇÃO: A exclusão das subcoleções 'records' deve ser feita via Cloud Function
-        // pois o Firestore não exclui subcoleções automaticamente
         console.warn('ATENÇÃO: Records da entidade devem ser excluídos via Cloud Function');
         
-        // Atualiza a lista local apenas se a operação for no workspace do usuário atual
         if (!ownerId || ownerId === currentUserId) {
             allEntities = allEntities.filter(e => e.id !== entityId);
         }
@@ -423,10 +403,8 @@ export async function deleteModule(moduleId, workspaceId = 'default', ownerId = 
         const targetUserId = ownerId || currentUserId;
         const modulePath = `users/${targetUserId}/workspaces/${workspaceId}/modules/${moduleId}`;
         
-        // Exclui o módulo
         await db.doc(modulePath).delete();
         
-        // Remove a associação das entidades com este módulo (define moduleId como null)
         const entitiesPath = `users/${targetUserId}/workspaces/${workspaceId}/entities`;
         const entitiesSnapshot = await db.collection(entitiesPath)
             .where('moduleId', '==', moduleId)
@@ -440,7 +418,6 @@ export async function deleteModule(moduleId, workspaceId = 'default', ownerId = 
             await batch.commit();
         }
         
-        // Atualiza a ordem local apenas se for o workspace do usuário atual
         if (!ownerId || ownerId === currentUserId) {
             modulesOrder = modulesOrder.filter(id => id !== moduleId);
         }
@@ -482,7 +459,6 @@ export async function saveEntityStructure(moduleId, entityId, entityName, attrib
             attributesCount: attributes.length
         });
         
-        // Atualiza o campo attributes na entidade
         await db.doc(docPath).update({ 
             name: entityName,
             attributes: attributes 
@@ -516,22 +492,20 @@ export async function saveSubEntityStructure(moduleId, entityId, parentFieldId, 
         const targetUserId = ownerId || currentUserId;
         const docPath = `users/${targetUserId}/workspaces/${workspaceId}/entities/${entityId}`;
         
-        // Migrado para Firestore: busca a entidade
         const docRef = db.doc(docPath);
         const docSnap = await docRef.get();
         
-        if (docSnap.exists()) {
+        // CORREÇÃO APLICADA AQUI
+        if (docSnap.exists) {
             const entityData = docSnap.data();
             const parentField = entityData.attributes?.find(attr => attr.id === parentFieldId);
             
             if (parentField) {
-                // Certifique-se de que subSchema existe
                 if (!parentField.subSchema) {
                     parentField.subSchema = {};
                 }
                 parentField.subSchema.attributes = attributes;
                 
-                // Atualiza a entidade com a nova estrutura de sub-entidade
                 await docRef.update({ attributes: entityData.attributes });
             }
         }
@@ -558,12 +532,10 @@ export async function saveModulesOrder(orderArray, workspaceId = 'default', owne
         const targetUserId = ownerId || currentUserId;
         const collectionPath = `users/${targetUserId}/workspaces/${workspaceId}/modules`;
         
-        // Atualiza a variável global somente se estiver operando no workspace do usuário logado
         if (!ownerId || ownerId === currentUserId) {
             modulesOrder = orderArray;
         }
         
-        // Usa batch write para atualizar a ordem de todos os módulos
         const batch = db.batch();
         orderArray.forEach((moduleId, index) => {
             const moduleRef = db.doc(`${collectionPath}/${moduleId}`);
@@ -627,17 +599,13 @@ export async function saveUserPreference(key, value) {
             throw new Error('Usuário não autenticado');
         }
         
-        // Atualiza o objeto local de preferências
         userPreferences[key] = value;
         
-        // Salva no Firestore
         await db.doc(`users/${userId}/preferences/${key}`).set({ value: value });
         
-        // Também salva no localStorage como fallback
         localStorage.setItem(key, JSON.stringify(value));
     } catch (error) {
         console.error("Erro ao salvar preferência do usuário:", error);
-        // Fallback para localStorage se o Firestore falhar
         localStorage.setItem(key, JSON.stringify(value));
     }
 }
@@ -649,19 +617,17 @@ export async function saveUserPreference(key, value) {
  * @returns {any} - Valor da preferência
  */
 export function getUserPreference(key, defaultValue = null) {
-    // Primeiro verifica no objeto carregado do Firebase
     if (userPreferences && userPreferences.hasOwnProperty(key)) {
         return userPreferences[key];
     }
     
-    // Depois tenta do localStorage como fallback
     try {
         const localValue = localStorage.getItem(key);
         if (localValue !== null) {
             return JSON.parse(localValue);
         }
     } catch (e) {
-        // Se não conseguir ler do localStorage, ignora
+        // Ignora erros
     }
     
     return defaultValue;
@@ -672,16 +638,10 @@ export function getUserPreference(key, defaultValue = null) {
  * @param {string} moduleId - ID do módulo
  * @param {string} entityId - ID da entidade
  * @param {Object} data - Dados a serem salvos
- * @param {string} workspaceId - ID da área de trabalho (necessário para getDbPath, mas dados são salvos fora de workspaces)
- * @param {string} ownerId - ID do dono da área de trabalho (opcional, para consistência, mas dados são salvos fora de workspaces)
+ * @param {string} workspaceId - ID da área de trabalho
+ * @param {string} ownerId - ID do dono da área de trabalho
  * @returns {Promise<string>} - ID do registro criado
  */
-// Nota: A estrutura de 'data' parece ser global para o usuário, não por workspace.
-// Se a intenção for salvar dados *dentro* de um workspace, a lógica de getDbPath e o caminho do DB precisam mudar aqui.
-// Assumindo que 'users/${userId}/data/' é o caminho correto e não depende de workspaceId/ownerId para o path em si,
-// mas ownerId pode ser usado para determinar o 'userId' no caminho se a lógica de 'created_by' for diferente para dados em workspaces compartilhados.
-// Por ora, mantendo a lógica original de usar getUsuarioId() para o caminho, pois 'data' está fora de 'workspaces'.
-// Se 'data' DEVE ser por workspace, esta função e as relacionadas (update, load, deleteEntityRecord) precisam de uma revisão maior.
 export async function saveEntityData(moduleId, entityId, data, workspaceId = 'default', ownerId = null) {
     try {
         showLoading('Salvando dados...');
@@ -693,7 +653,6 @@ export async function saveEntityData(moduleId, entityId, data, workspaceId = 'de
             throw new Error('Usuário não autenticado');
         }
         
-        // Dados com metadados do sistema
         const recordData = {
             ...data,
             created_at: new Date().toISOString(),
@@ -701,7 +660,6 @@ export async function saveEntityData(moduleId, entityId, data, workspaceId = 'de
             created_by: currentUserId
         };
         
-        // Nova estrutura: users/{userId}/workspaces/{workspaceId}/entities/{entityId}/records
         const recordsPath = `users/${targetUserId}/workspaces/${workspaceId}/entities/${entityId}/records`;
         
         const docRef = await db.collection(recordsPath).add(recordData);
@@ -722,8 +680,8 @@ export async function saveEntityData(moduleId, entityId, data, workspaceId = 'de
  * @param {string} entityId - ID da entidade
  * @param {string} recordId - ID do registro
  * @param {Object} data - Dados atualizados
- * @param {string} workspaceId - ID da área de trabalho (para consistência, ver nota em saveEntityData)
- * @param {string} ownerId - ID do dono (para consistência, ver nota em saveEntityData)
+ * @param {string} workspaceId - ID da área de trabalho
+ * @param {string} ownerId - ID do dono
  * @returns {Promise<void>}
  */
 export async function updateEntityData(moduleId, entityId, recordId, data, workspaceId = 'default', ownerId = null) {
@@ -737,13 +695,11 @@ export async function updateEntityData(moduleId, entityId, recordId, data, works
             throw new Error('Usuário não autenticado');
         }
         
-        // Adiciona timestamp de atualização
         const updateData = {
             ...data,
             updated_at: new Date().toISOString()
         };
         
-        // Nova estrutura: users/{userId}/workspaces/{workspaceId}/entities/{entityId}/records/{recordId}
         const recordPath = `users/${targetUserId}/workspaces/${workspaceId}/entities/${entityId}/records/${recordId}`;
         
         await db.doc(recordPath).update(updateData);
@@ -761,8 +717,8 @@ export async function updateEntityData(moduleId, entityId, recordId, data, works
  * Carrega dados de uma entidade
  * @param {string} moduleId - ID do módulo
  * @param {string} entityId - ID da entidade
- * @param {string} workspaceId - ID da área de trabalho (para consistência)
- * @param {string} ownerId - ID do dono (para determinar de qual usuário carregar os dados)
+ * @param {string} workspaceId - ID da área de trabalho
+ * @param {string} ownerId - ID do dono
  * @returns {Promise<Array>} - Array com os dados da entidade
  */
 export async function loadEntityData(moduleId, entityId, workspaceId = 'default', ownerId = null) {
@@ -774,7 +730,6 @@ export async function loadEntityData(moduleId, entityId, workspaceId = 'default'
             throw new Error('Usuário não autenticado ou ID do dono não especificado para recurso compartilhado.');
         }
         
-        // Nova estrutura: users/{userId}/workspaces/{workspaceId}/entities/{entityId}/records
         const recordsPath = `users/${targetUserId}/workspaces/${workspaceId}/entities/${entityId}/records`;
         const snapshot = await db.collection(recordsPath).get();
         
@@ -803,8 +758,8 @@ export async function loadEntityData(moduleId, entityId, workspaceId = 'default'
  * @param {string} moduleId - ID do módulo
  * @param {string} entityId - ID da entidade
  * @param {string} recordId - ID do registro
- * @param {string} workspaceId - ID da área de trabalho (para consistência)
- * @param {string} ownerId - ID do dono (para consistência, ver nota em saveEntityData)
+ * @param {string} workspaceId - ID da área de trabalho
+ * @param {string} ownerId - ID do dono
  * @returns {Promise<void>}
  */
 export async function deleteEntityRecord(moduleId, entityId, recordId, workspaceId = 'default', ownerId = null) {
@@ -818,7 +773,6 @@ export async function deleteEntityRecord(moduleId, entityId, recordId, workspace
             throw new Error('Usuário não autenticado');
         }
         
-        // Nova estrutura: users/{userId}/workspaces/{workspaceId}/entities/{entityId}/records/{recordId}
         const recordPath = `users/${targetUserId}/workspaces/${workspaceId}/entities/${entityId}/records/${recordId}`;
         
         await db.doc(recordPath).delete();
@@ -846,11 +800,11 @@ export async function loadSharedResources() {
         
         console.log("Carregando recursos compartilhados para o usuário:", userId);
         
-        // Migrado para Firestore: Verifica permissões do usuário
         const accessControlDocRef = db.collection('accessControl').doc(userId);
         const accessControlSnap = await accessControlDocRef.get();
         
-        if (!accessControlSnap.exists()) {
+        // CORREÇÃO APLICADA AQUI
+        if (!accessControlSnap.exists) {
             console.log("Nenhum recurso compartilhado encontrado para o usuário:", userId);
             sharedResources = [];
             return [];
@@ -859,11 +813,9 @@ export async function loadSharedResources() {
         const accessControl = accessControlSnap.data();
         console.log("Permissões encontradas:", accessControl);
         
-        // Lista para armazenar os recursos compartilhados
         sharedResources = [];
         
         try {
-            // Migrado para Firestore: Busca todos os convites aceitos enviados para este usuário
             const invitationsSnapshot = await db.collection('invitations')
                 .where('toEmail', '==', userEmail)
                 .where('status', '==', 'accepted')
@@ -874,14 +826,11 @@ export async function loadSharedResources() {
                 return [];
             }
             
-            // Processa cada convite
             invitationsSnapshot.forEach(doc => {
                 const invite = doc.data();
                 const resourceId = invite.resourceId;
                 
-                // Verifica se o usuário tem permissão no accessControl
                 if (accessControl[resourceId]) {
-                    // Adiciona o recurso à lista
                     sharedResources.push({
                         id: resourceId,
                         ownerId: invite.fromUserId,
@@ -922,11 +871,11 @@ export async function checkResourceAccess(resourceId) {
         const userId = getUsuarioId();
         if (!userId) return null;
         
-        // Migrado para Firestore: usando db.collection() e db.doc()
         const docRef = db.collection('accessControl').doc(userId);
         const docSnap = await docRef.get();
         
-        if (docSnap.exists() && docSnap.data()[resourceId]) {
+        // CORREÇÃO APLICADA AQUI
+        if (docSnap.exists && docSnap.data()[resourceId]) {
             return docSnap.data()[resourceId];
         }
         return null;
@@ -950,7 +899,6 @@ export async function loadSharedUserModules(ownerId, workspaceId = 'default') {
         const collectionPath = `users/${ownerId}/workspaces/${workspaceId}/modules`;
         console.log(`Carregando módulos compartilhados de: ${collectionPath}`);
         
-        // Migrado para Firestore: usando db.collection()
         const snapshot = await db.collection(collectionPath).orderBy('order').get();
         if (snapshot.empty) {
             console.log(`Nenhum módulo encontrado em ${collectionPath}`);
@@ -990,7 +938,6 @@ export async function loadSharedUserEntities(ownerId, workspaceId = 'default') {
         const collectionPath = `users/${ownerId}/workspaces/${workspaceId}/entities`;
         console.log(`Carregando entidades compartilhadas de: ${collectionPath}`);
         
-        // Migrado para Firestore: usando db.collection()
         const snapshot = await db.collection(collectionPath).get();
         if (snapshot.empty) {
             console.log(`Nenhuma entidade encontrada em ${collectionPath}`);
@@ -1031,7 +978,6 @@ export async function loadSharedModuleSchemas(ownerId, workspaceId = 'default', 
         const collectionPath = `users/${ownerId}/workspaces/${workspaceId}/entities`;
         console.log(`Carregando esquemas compartilhados de: ${collectionPath} (módulo: ${moduleId})`);
         
-        // Migrado para Firestore: busca entidades do módulo específico
         const snapshot = await db.collection(collectionPath)
             .where('moduleId', '==', moduleId)
             .get();
@@ -1072,11 +1018,11 @@ export async function loadStructureForEntityShared(moduleId, entityId, workspace
         const docPath = `users/${ownerId}/workspaces/${workspaceId}/entities/${entityId}`;
         console.log(`Carregando estrutura compartilhada de: ${docPath}`);
         
-        // Migrado para Firestore: usando db.doc()
         const docRef = db.doc(docPath);
         const docSnap = await docRef.get();
         
-        if (!docSnap.exists()) {
+        // CORREÇÃO APLICADA AQUI
+        if (!docSnap.exists) {
             console.log(`Estrutura não encontrada em ${docPath}`);
             return null;
         }
