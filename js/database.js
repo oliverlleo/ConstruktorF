@@ -515,7 +515,7 @@ export async function saveSubEntityStructure(moduleId, entityId, parentFieldId, 
         const docRef = db.doc(docPath);
         const docSnap = await docRef.get();
         
-        if (docSnap.exists()) {
+        if (docSnap.exists) {
             const entityData = docSnap.data();
             const parentField = entityData.attributes?.find(attr => attr.id === parentFieldId);
             
@@ -845,7 +845,8 @@ export async function loadSharedResources() {
         const accessControlDocRef = db.collection('accessControl').doc(userId);
         const accessControlSnap = await accessControlDocRef.get();
         
-        if (!accessControlSnap.exists()) {
+        // CORREÇÃO: Usar .exists em vez de .exists()
+        if (!accessControlSnap.exists) {
             console.log("Nenhum recurso compartilhado encontrado para o usuário:", userId);
             sharedResources = [];
             return [];
@@ -921,7 +922,8 @@ export async function checkResourceAccess(resourceId) {
         const docRef = db.collection('accessControl').doc(userId);
         const docSnap = await docRef.get();
         
-        if (docSnap.exists() && docSnap.data()[resourceId]) {
+        // CORREÇÃO: Usar .exists em vez de .exists()
+        if (docSnap.exists && docSnap.data()[resourceId]) {
             return docSnap.data()[resourceId];
         }
         return null;
@@ -1071,7 +1073,8 @@ export async function loadStructureForEntityShared(moduleId, entityId, workspace
         const docRef = db.doc(docPath);
         const docSnap = await docRef.get();
         
-        if (!docSnap.exists()) {
+        // CORREÇÃO: Usar .exists em vez de .exists()
+        if (!docSnap.exists) {
             console.log(`Estrutura não encontrada em ${docPath}`);
             return null;
         }
