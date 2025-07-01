@@ -37,14 +37,14 @@ export async function initWorkspaces(database) {
 
   // Carrega as áreas de trabalho próprias e compartilhadas
   await loadUserWorkspaces();
-  await _loadSharedWorkspaces(); // CORREÇÃO: Chamada da função que estava em falta
+  await _loadSharedWorkspaces(); 
 
   // Configura listener para mudanças no controle de acesso (Firestore onSnapshot)
   const userId = getUsuarioId();
   if (userId) {
     db.doc(`accessControl/${userId}`).onSnapshot((snapshot) => {
       console.log("Mudança detectada no controle de acesso:", snapshot.data());
-      _loadSharedWorkspaces(); // CORREÇÃO: Ação a ser tomada quando as permissões mudam
+      _loadSharedWorkspaces(); 
     });
   }
 }
@@ -108,6 +108,7 @@ async function loadUserWorkspaces() {
           id: doc.id,
           ...doc.data(),
           isOwner: true,
+          role: 'admin' // O dono é sempre admin do seu próprio workspace
         });
       });
     }
@@ -121,7 +122,7 @@ async function loadUserWorkspaces() {
 
     // Define o workspace atual como o primeiro se não houver um selecionado
     if (!currentWorkspace && userWorkspaces.length > 0) {
-      currentWorkspace = userWorkspaces[0];
+        await switchToWorkspace(userWorkspaces[0]);
     }
 
     return userWorkspaces;
@@ -203,7 +204,6 @@ async function _loadSharedWorkspaces() {
     return sharedWorkspaces;
   } catch (error) {
     console.error("Erro ao carregar áreas de trabalho compartilhadas:", error);
-    // Não mostrar o erro ao utilizador se for apenas uma negação de permissão inicial, o que é normal.
     if (error.code !== "PERMISSION_DENIED") {
       showError(
         "Erro",
@@ -237,6 +237,7 @@ async function createDefaultWorkspace() {
       id: docRef.id,
       ...defaultWorkspace,
       isOwner: true,
+      role: 'admin'
     });
 
     return docRef.id;
@@ -279,6 +280,7 @@ async function createNewWorkspace() {
         id: docRef.id,
         ...newWorkspace,
         isOwner: true,
+        role: 'admin'
       };
       userWorkspaces.push(workspace);
 
@@ -301,7 +303,7 @@ async function createNewWorkspace() {
 }
 
 /**
- * Alterna para uma área de trabalho específica
+ * Alterna para uma área de trabalho específica e atualiza a UI com base nas permissões.
  */
 async function switchToWorkspace(workspace) {
   showLoading("Carregando área de trabalho...");
@@ -309,20 +311,28 @@ async function switchToWorkspace(workspace) {
   try {
     currentWorkspace = workspace;
 
-    // Atualiza o seletor
     const workspaceSelect = document.getElementById("workspace-select");
     if (workspaceSelect) {
       workspaceSelect.value = workspace.id;
     }
 
-    // Mostra/esconde botão de compartilhamento baseado na propriedade
+    // Controla a visibilidade dos botões de edição com base na permissão.
+    const canEditStructure = workspace.isOwner || workspace.role === 'admin';
+    const canShare = workspace.isOwner || workspace.role === 'admin';
+
     const shareBtn = document.getElementById("share-workspace-btn");
     if (shareBtn) {
-      if (workspace.isOwner) {
-        shareBtn.classList.remove("hidden");
-      } else {
-        shareBtn.classList.add("hidden");
-      }
+        shareBtn.style.display = canShare ? 'block' : 'none';
+    }
+
+    const addModuleBtn = document.getElementById("add-new-module-btn");
+    if (addModuleBtn) {
+        addModuleBtn.style.display = canEditStructure ? 'flex' : 'none';
+    }
+
+    const addEntityBtn = document.getElementById("add-new-entity-btn");
+    if (addEntityBtn) {
+        addEntityBtn.style.display = canEditStructure ? 'flex' : 'none';
     }
 
     // Dispara evento para outros módulos atualizarem
@@ -347,7 +357,6 @@ async function switchWorkspace(event) {
   const workspaceId = event.target.value;
   if (!workspaceId) return;
 
-  // Busca a área de trabalho nas listas
   let workspace = userWorkspaces.find((w) => w.id === workspaceId);
   if (!workspace) {
     workspace = sharedWorkspaces.find((w) => w.id === workspaceId);
@@ -362,12 +371,11 @@ async function switchWorkspace(event) {
  * Compartilha a área de trabalho atual
  */
 async function shareCurrentWorkspace() {
-  if (!currentWorkspace || !currentWorkspace.isOwner) {
-    showError("Erro", "Você só pode compartilhar áreas de trabalho que criou.");
+  if (!currentWorkspace || (!currentWorkspace.isOwner && currentWorkspace.role !== 'admin')) {
+    showError("Erro", "Você não tem permissão para compartilhar esta área de trabalho.");
     return;
   }
 
-  // HTML para o formulário de compartilhamento
   const formHtml = `
         <div class="text-left">
             <div class="mb-4">
@@ -378,7 +386,7 @@ async function shareCurrentWorkspace() {
                 <label for="swal-permission" class="block text-sm font-medium text-slate-700 mb-1">Nível de permissão</label>
                 <select id="swal-permission" class="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
                     <option value="viewer">Leitor - Apenas visualizar</option>
-                    <option value="editor">Editor - Criar e editar</option>
+                    <option value="editor">Editor - Criar e editar dados</option>
                     <option value="admin">Administrador - Controle total</option>
                 </select>
             </div>
@@ -405,14 +413,12 @@ async function shareCurrentWorkspace() {
           return false;
         }
 
-        // Validação de email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
           Swal.showValidationMessage("Por favor, informe um email válido.");
           return false;
         }
 
-        // Não permite compartilhar consigo mesmo
         if (email.toLowerCase() === getUsuarioEmail()?.toLowerCase()) {
           Swal.showValidationMessage(
             "Você não pode compartilhar consigo mesmo."
@@ -444,7 +450,6 @@ async function sendWorkspaceInvitation(email, permission) {
       throw new Error("Dados necessários não encontrados.");
     }
 
-    // Busca o perfil do usuário atual
     const userProfile = (await getUserProfileData()) || {};
     const senderName =
       userProfile.displayName ||
@@ -452,7 +457,6 @@ async function sendWorkspaceInvitation(email, permission) {
       getUsuarioEmail() ||
       "Usuário";
 
-    // Cria o convite
     const inviteData = {
       fromUserId: userId,
       fromUserName: senderName,
@@ -488,7 +492,6 @@ function updateWorkspaceSelector() {
 
   workspaceSelect.innerHTML = "";
 
-  // Adiciona áreas de trabalho próprias
   if (userWorkspaces.length > 0) {
     const ownGroup = document.createElement("optgroup");
     ownGroup.label = "Minhas Áreas de Trabalho";
@@ -503,7 +506,6 @@ function updateWorkspaceSelector() {
     workspaceSelect.appendChild(ownGroup);
   }
 
-  // Adiciona áreas de trabalho compartilhadas
   if (sharedWorkspaces.length > 0) {
     const sharedGroup = document.createElement("optgroup");
     sharedGroup.label = "Compartilhadas Comigo";
@@ -518,7 +520,6 @@ function updateWorkspaceSelector() {
     workspaceSelect.appendChild(sharedGroup);
   }
 
-  // Seleciona a área de trabalho atual
   if (currentWorkspace) {
     workspaceSelect.value = currentWorkspace.id;
   }
@@ -554,7 +555,6 @@ function updateSharedWorkspacesDisplay() {
       renderSharedWorkspace(workspace, container);
     });
 
-    // Atualiza os ícones para garantir que eles sejam renderizados
     setTimeout(() => {
       if (window.lucide) {
         lucide.createIcons();
