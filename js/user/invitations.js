@@ -247,50 +247,28 @@ async function sendInvite() {
 async function manageInvite(inviteId, action) {
     showLoading('Processando...');
     try {
-        const inviteSnapshot = await db.doc(`invitations/${inviteId}`).get();
-        if (!inviteSnapshot.exists) throw new Error("Convite não encontrado.");
-        const inviteData = inviteSnapshot.data();
-        
-        const batch = db.batch();
-        
+        const inviteRef = db.doc(`invitations/${inviteId}`);
+        let updateData = {};
+
         if (action === 'accept') {
-            const acceptedByUserId = getUsuarioId();
-            batch.update(db.doc(`invitations/${inviteId}`), {
+            // A única responsabilidade do cliente é marcar como aceito e registrar quem aceitou.
+            // A Cloud Function 'onInviteAccepted' fará o resto.
+            updateData = {
                 status: 'accepted',
                 acceptedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                toUserId: acceptedByUserId
-            });
-            
-            batch.set(db.doc(`accessControl/${acceptedByUserId}`), {
-                [inviteData.resourceId]: inviteData.role
-            }, { merge: true });
-            
-            if (inviteData.resourceType === 'workspace') {
-                batch.set(db.doc(`sharedWorkspaces/${inviteData.resourceId}`), {
-                    name: inviteData.resourceName,
-                    ownerId: inviteData.fromUserId,
-                    ownerName: inviteData.fromUserName
-                });
-            }
+                toUserId: getUsuarioId() // Guarda o ID do usuário que aceitou
+            };
         } else if (action === 'revoke') {
-            const invitedUserId = inviteData.toUserId;
-            if (invitedUserId) {
-                batch.update(db.doc(`accessControl/${invitedUserId}`), {
-                    [inviteData.resourceId]: firebase.firestore.FieldValue.delete()
-                });
-            } else {
-                console.warn("Não foi possível revogar o acesso: toUserId não encontrado no convite.");
-            }
-            batch.update(db.doc(`invitations/${inviteId}`), {
-                status: 'revoked'
-            });
+            // A lógica de revogar acesso deve ser feita por uma Cloud Function para segurança.
+            // Por agora, apenas marcamos o convite como revogado.
+            updateData = { status: 'revoked' };
         } else {
-            batch.update(db.doc(`invitations/${inviteId}`), {
-                status: action === 'decline' ? 'declined' : 'canceled'
-            });
+            // Para 'decline' ou 'cancel'
+            updateData = { status: action === 'decline' ? 'declined' : 'canceled' };
         }
+        
+        await inviteRef.update(updateData);
 
-        await batch.commit();
         hideLoading();
         showSuccess('Sucesso!', 'O convite foi processado.');
 
@@ -322,8 +300,8 @@ async function updateUserPermission(inviteId, newRole) {
         if (inviteData.fromUserId !== getUsuarioId()) throw new Error("Apenas o dono do convite pode alterar a permissão.");
         if (inviteData.status !== 'accepted') throw new Error("Só é possível alterar permissões de convites já aceitos.");
         
-        const invitedUserId = inviteData.toUserId; // **CORREÇÃO CRÍTICA**: Usa o `toUserId` guardado
-        if (!invitedUserId) throw new Error("O ID do usuário convidado não foi encontrado. O convite pode não ter sido devidamente aceito.");
+        const invitedUserId = inviteData.toUserId;
+        if (!invitedUserId) throw new Error("O ID do usuário convidado não foi encontrado.");
 
         const batch = db.batch();
         batch.update(db.doc(`invitations/${inviteId}`), { role: newRole });
@@ -534,7 +512,7 @@ function formatPermission(role) {
 
 function formatDate(timestamp) {
     if (!timestamp) return 'Data desconhecida';
-    const date = new Date(timestamp);
+    const date = new Date(timestamp.seconds * 1000); // Converte timestamp do Firestore
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
