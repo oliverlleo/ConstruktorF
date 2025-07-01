@@ -673,29 +673,31 @@ function setupEventListeners() {
     }
 }
 
+// Em js/main.js
+
 async function handleEntityDrop(event) {
     const { item, to, from } = event;
-    const { entityId, entityName, entityIcon } = item.dataset;
-    const moduleEl = to.closest('.module-quadro');
-    const moduleId = moduleEl.dataset.moduleId;
+    const { entityId, entityName } = item.dataset;
+    const targetModuleEl = to.closest('.module-quadro');
+    const targetModuleId = targetModuleEl.dataset.moduleId;
+
     const isFromModule = from && from.classList.contains('entities-dropzone');
     const sourceModuleEl = isFromModule ? from.closest('.module-quadro') : null;
     const sourceModuleId = sourceModuleEl ? sourceModuleEl.dataset.moduleId : null;
 
-    // Remove o item temporário do arraste
+    // Remove o card temporário criado pela biblioteca de drag-and-drop
     item.remove();
     
-    // Ação padrão é adicionar da biblioteca
     let actionType = 'add';
     
-    // Se está vindo de outro módulo, pergunta se quer copiar ou mover
-    if (isFromModule && sourceModuleId && sourceModuleId !== moduleId) {
+    // Se a entidade está vindo de outro módulo, pergunta ao usuário o que fazer
+    if (isFromModule && sourceModuleId && sourceModuleId !== targetModuleId) {
         const choice = await showCopyOrMoveDialog(entityName);
         if (choice === null) {
-            // Usuário cancelou, recria o item na origem para não perdê-lo de vista
-            const entityInfo = getEntityById(entityId);
-            if (sourceModuleId && entityInfo) {
-                renderDroppedEntity(sourceModuleId, entityId, { entityName, attributes: entityInfo.attributes || [] }, entityInfo);
+            // Se o usuário cancelar, renderiza o card de volta no lugar original para não sumir
+            const originalEntityInfo = getEntityById(entityId);
+            if (sourceModuleId && originalEntityInfo) {
+                renderDroppedEntity(sourceModuleId, entityId, originalEntityInfo, originalEntityInfo);
             }
             return;
         }
@@ -708,42 +710,47 @@ async function handleEntityDrop(event) {
     
     try {
         if (actionType === 'copy') {
-            const newEntityInfo = await copyEntityToModule(entityId, moduleId, workspaceId, ownerId);
-            if (newEntityInfo) {
-                renderDroppedEntity(moduleId, newEntityInfo.id, { entityName: newEntityInfo.name }, newEntityInfo);
-                 // Recria o card na origem pois a cópia não deve remover o original
-                const originalEntityInfo = getEntityById(entityId);
-                 if (sourceModuleId && originalEntityInfo) {
-                    renderDroppedEntity(sourceModuleId, entityId, { entityName: originalEntityInfo.name }, originalEntityInfo);
+            const newEntity = await copyEntityToModule(entityId, targetModuleId, workspaceId, ownerId);
+            if (newEntity) {
+                // Renderiza a nova entidade (a cópia) no módulo de destino
+                renderDroppedEntity(targetModuleId, newEntity.id, newEntity, newEntity);
+
+                // Renderiza a entidade original de volta no módulo de origem
+                const originalEntity = getEntityById(entityId);
+                if (sourceModuleId && originalEntity) {
+                    renderDroppedEntity(sourceModuleId, originalEntity.id, originalEntity, originalEntity);
                 }
             }
         } else if (actionType === 'move') {
-            await moveEntityToModule(entityId, moduleId, workspaceId, ownerId);
+            await moveEntityToModule(entityId, targetModuleId, workspaceId, ownerId);
             
-            // Remove o card visual do DOM do módulo de origem
-            const sourceCard = sourceModuleEl.querySelector(`.dropped-entity-card[data-entity-id="${entityId}"]`);
-            if (sourceCard) {
-                sourceCard.remove();
+            // Remove o card do DOM do módulo antigo
+            if (sourceModuleEl) {
+                const sourceCard = sourceModuleEl.querySelector(`.dropped-entity-card[data-entity-id="${entityId}"]`);
+                if (sourceCard) {
+                    sourceCard.remove();
+                }
             }
             
             // Renderiza o card no novo módulo
-            const entityInfo = getEntityById(entityId);
-            renderDroppedEntity(moduleId, entityId, { entityName }, entityInfo);
+            const movedEntityInfo = getEntityById(entityId);
+            renderDroppedEntity(targetModuleId, entityId, movedEntityInfo, movedEntityInfo);
             showSuccess('Entidade movida!', `"${entityName}" foi transferida.`);
 
-        } else { // actionType === 'add'
-            await saveEntityToModule(moduleId, entityId, entityName, workspaceId, ownerId);
-            const entityInfo = getEntityById(entityId);
-            renderDroppedEntity(moduleId, entityId, { entityName }, entityInfo);
+        } else { // Adicionar da biblioteca
+            await saveEntityToModule(targetModuleId, entityId, entityName, workspaceId, ownerId);
+            const addedEntityInfo = getEntityById(entityId);
+            renderDroppedEntity(targetModuleId, entityId, addedEntityInfo, addedEntityInfo);
             showSuccess('Entidade adicionada!', `"${entityName}" foi adicionada ao módulo.`);
         }
     } catch (error) {
         console.error('Erro na operação de drop:', error);
         showError('Erro', 'Não foi possível completar a operação.');
-        // Se der erro, tenta restaurar o card na origem
-        const entityInfo = getEntityById(entityId);
-        if(sourceModuleId && entityInfo) {
-            renderDroppedEntity(sourceModuleId, entityId, { entityName }, entityInfo);
+
+        // Em caso de erro, tenta restaurar o card na sua posição original
+        const originalEntityInfo = getEntityById(entityId);
+        if(sourceModuleId && originalEntityInfo) {
+            renderDroppedEntity(sourceModuleId, entityId, originalEntityInfo, originalEntityInfo);
         }
     }
 }

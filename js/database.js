@@ -6,6 +6,15 @@ import { TIPS_STATE } from './config.js';
 let db;
 let allEntities = [];
 let modulesOrder = []; // Armazena a ordem dos módulos
+
+// Função auxiliar para atualizar o cache local. (Adicione esta se não existir)
+function updateLocalEntity(entityId, updatedData) {
+    const entityIndex = allEntities.findIndex(e => e.id === entityId);
+    if (entityIndex > -1) {
+        allEntities[entityIndex] = { ...allEntities[entityIndex], ...updatedData };
+        console.log(`Cache local da entidade '${entityId}' foi atualizado.`);
+    }
+}
 let userPreferences = {}; // Armazena preferências do usuário
 let sharedResources = []; // Armazena recursos compartilhados com o usuário
 
@@ -251,6 +260,7 @@ export async function saveEntityToModule(moduleId, entityId, entityName, workspa
  * @param {string} ownerId - ID do dono da área de trabalho (opcional)
  * @returns {Promise<string>} ID da nova entidade criada
  */
+// SUBSTITUA a sua função copyEntityToModule por esta:
 export async function copyEntityToModule(sourceEntityId, targetModuleId, workspaceId = 'default', ownerId = null) {
     try {
         showLoading('Copiando entidade e dados...');
@@ -259,52 +269,42 @@ export async function copyEntityToModule(sourceEntityId, targetModuleId, workspa
         const entitiesCollectionPath = `users/${targetUserId}/workspaces/${workspaceId}/entities`;
         const sourceEntityRef = db.doc(`${entitiesCollectionPath}/${sourceEntityId}`);
 
-        // 1. Obter a entidade original
         const sourceEntityDoc = await sourceEntityRef.get();
         if (!sourceEntityDoc.exists) {
             throw new Error("Entidade de origem não encontrada.");
         }
         const sourceData = sourceEntityDoc.data();
 
-        // 2. Preparar dados para a nova entidade
         const newEntityData = {
             ...sourceData,
             moduleId: targetModuleId,
             name: `${sourceData.name} (Cópia)`,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
         };
 
-        // 3. Criar a nova entidade e obter sua referência
         const newEntityRef = await db.collection(entitiesCollectionPath).add(newEntityData);
         const newEntityId = newEntityRef.id;
 
-        // 4. Obter todos os registros da subcoleção da entidade original
         const recordsSnapshot = await sourceEntityRef.collection('records').get();
 
-        // 5. Copiar todos os registros para a nova entidade usando um batch write para eficiência
         if (!recordsSnapshot.empty) {
             const batch = db.batch();
             recordsSnapshot.docs.forEach(doc => {
-                const newRecordRef = newEntityRef.collection('records').doc(); // Cria um novo doc com ID automático
+                const newRecordRef = newEntityRef.collection('records').doc();
                 batch.set(newRecordRef, doc.data());
             });
             await batch.commit();
-            console.log(`${recordsSnapshot.size} registros copiados com sucesso.`);
         }
 
-        // 6. Atualizar a lista local de entidades
+        const newCompleteEntity = { ...newEntityData, id: newEntityId };
         if (!ownerId || ownerId === currentUserId) {
             if (typeof allEntities !== 'undefined' && allEntities) {
-                allEntities.push({ ...newEntityData, id: newEntityId });
+                allEntities.push(newCompleteEntity);
             }
         }
         
         hideLoading();
         showSuccess('Copiado!', `A entidade e todos os seus dados foram copiados.`);
-
-        // Retorna os dados da nova entidade para a UI
-        return { id: newEntityId, name: newEntityData.name, icon: newEntityData.icon };
+        return newCompleteEntity;
 
     } catch (error) {
         hideLoading();
@@ -322,17 +322,22 @@ export async function copyEntityToModule(sourceEntityId, targetModuleId, workspa
  * @param {string} ownerId - ID do dono da área de trabalho (opcional)
  * @returns {Promise<void>}
  */
+// SUBSTITUA a sua função moveEntityToModule por esta:
 export async function moveEntityToModule(entityId, targetModuleId, workspaceId = 'default', ownerId = null) {
     try {
         const currentUserId = getUsuarioId();
         const targetUserId = ownerId || currentUserId;
         const entityPath = `users/${targetUserId}/workspaces/${workspaceId}/entities/${entityId}`;
         
-        // Atualiza o moduleId da entidade para o novo módulo
-        await db.doc(entityPath).update({ 
+        const updateData = {
             moduleId: targetModuleId,
             updatedAt: new Date().toISOString()
-        });
+        };
+
+        await db.doc(entityPath).update(updateData);
+
+        // Atualiza o cache local para refletir a mudança
+        updateLocalEntity(entityId, { moduleId: targetModuleId });
         
         console.log(`Entidade ${entityId} movida para o módulo ${targetModuleId}`);
     } catch (error) {
