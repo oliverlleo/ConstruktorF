@@ -24,8 +24,6 @@ function getDbPath(workspaceId, ownerId, path = '') {
     const targetUserId = ownerId || currentUserId;
     if (!targetUserId) {
         console.error("Error: Target user ID is null in getDbPath.");
-        // Potentially throw an error or return a clearly invalid path
-        // For now, this matches existing behavior of functions that would fail later.
     }
     let basePath = `users/${targetUserId}/workspaces/${workspaceId}`;
     if (path) {
@@ -495,7 +493,6 @@ export async function saveSubEntityStructure(moduleId, entityId, parentFieldId, 
         const docRef = db.doc(docPath);
         const docSnap = await docRef.get();
         
-        // CORREÇÃO APLICADA AQUI
         if (docSnap.exists) {
             const entityData = docSnap.data();
             const parentField = entityData.attributes?.find(attr => attr.id === parentFieldId);
@@ -803,7 +800,6 @@ export async function loadSharedResources() {
         const accessControlDocRef = db.collection('accessControl').doc(userId);
         const accessControlSnap = await accessControlDocRef.get();
         
-        // CORREÇÃO APLICADA AQUI
         if (!accessControlSnap.exists) {
             console.log("Nenhum recurso compartilhado encontrado para o usuário:", userId);
             sharedResources = [];
@@ -874,7 +870,6 @@ export async function checkResourceAccess(resourceId) {
         const docRef = db.collection('accessControl').doc(userId);
         const docSnap = await docRef.get();
         
-        // CORREÇÃO APLICADA AQUI
         if (docSnap.exists && docSnap.data()[resourceId]) {
             return docSnap.data()[resourceId];
         }
@@ -1021,7 +1016,6 @@ export async function loadStructureForEntityShared(moduleId, entityId, workspace
         const docRef = db.doc(docPath);
         const docSnap = await docRef.get();
         
-        // CORREÇÃO APLICADA AQUI
         if (!docSnap.exists) {
             console.log(`Estrutura não encontrada em ${docPath}`);
             return null;
