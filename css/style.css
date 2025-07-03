@@ -1178,3 +1178,16 @@ pre {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Garante que o dropdown se posicione em relação ao seu novo pai */
+#settings-menu-button-wrapper { /* Dê este ID ao div com `position: relative` se precisar */
+    position: relative;
+}
+
+#user-menu-dropdown {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 0.5rem; /* Ajuste conforme necessário */
+    z-index: 50;
+}

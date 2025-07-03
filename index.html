@@ -180,14 +180,32 @@
                 <button id="mobile-menu-toggle" class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 sm:hidden">
                     <i class="fa-solid fa-bars w-6 h-6"></i>
                 </button>
+                <div class="flex items-center gap-2 sm:gap-3 p-2">
+                    <img src="imagem/logo.png" alt="Construktor Logo" class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-md">
+                    <h1 class="text-xl sm:text-2xl font-bold text-slate-800">Construktor</h1>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-4">
+                <button id="help-button" class="text-slate-600 hover:text-indigo-600 transition-colors flex items-center gap-1">
+                    <i class="fa-solid fa-circle-question h-5 w-5"></i>
+                    <span class="text-sm font-medium hidden sm:inline">Ajuda</span>
+                </button>
+                <!-- Botão Ver Código apenas visível em desktop -->
+                <a href="pages/code-view.html" target="_blank" class="hidden sm:flex bg-gradient-to-r from-green-600 to-teal-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg hover:from-green-700 hover:to-teal-700 transition-all shadow-md items-center gap-2 text-sm sm:text-base">
+                    <i class="fa-solid fa-code h-4 w-4 sm:h-5 sm:w-5"></i>
+                    <span class="font-medium">Ver Código</span>
+                </a>
+                <!-- Botão Ver Página apenas visível em desktop -->
+                <a href="pages/user-view.html" target="_blank" class="hidden sm:flex bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md items-center gap-2 text-sm sm:text-base">
+                    <i class="fa-solid fa-eye h-4 w-4 sm:h-5 sm:w-5"></i>
+                    <span class="font-medium">Ver Página</span>
+                </a>
+                <!-- Botão de logout removido pois agora está no menu do usuário -->
                 <div class="relative">
-                    <button id="user-menu-button" class="flex items-center gap-2 sm:gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-100">
-                        <img src="imagem/logo.png" alt="Construktor Logo" class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-md">
-                        <h1 class="text-xl sm:text-2xl font-bold text-slate-800">Construktor</h1>
-                        <i class="fa-solid fa-chevron-down h-4 w-4 text-slate-400"></i>
+                    <button id="settings-menu-button" class="text-slate-600 hover:text-indigo-600 transition-colors p-2 rounded-lg hover:bg-slate-100">
+                        <i class="fa-solid fa-gear h-5 w-5"></i>
                     </button>
-
-                    <div id="user-menu-dropdown" class="absolute top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-slate-200 p-2 z-50 hidden">
+                    <div id="user-menu-dropdown" class="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-slate-200 p-2 z-50 hidden">
                         <div class="p-2">
                             <p class="text-xs text-slate-500">Logado como</p>
                             <div class="flex items-center gap-2 mt-1">
@@ -216,24 +234,6 @@
                         </a>
                     </div>
                 </div>
-            </div>
-            <div class="flex items-center gap-2 sm:gap-4">
-                <button id="help-button" class="text-slate-600 hover:text-indigo-600 transition-colors flex items-center gap-1">
-                    <i class="fa-solid fa-circle-question h-5 w-5"></i>
-                    <span class="text-sm font-medium hidden sm:inline">Ajuda</span>
-                </button>
-                <!-- Botão Ver Código apenas visível em desktop -->
-                <a href="pages/code-view.html" target="_blank" class="hidden sm:flex bg-gradient-to-r from-green-600 to-teal-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg hover:from-green-700 hover:to-teal-700 transition-all shadow-md items-center gap-2 text-sm sm:text-base">
-                    <i class="fa-solid fa-code h-4 w-4 sm:h-5 sm:w-5"></i>
-                    <span class="font-medium">Ver Código</span>
-                </a>
-                <!-- Botão Ver Página apenas visível em desktop -->
-                <a href="pages/user-view.html" target="_blank" class="hidden sm:flex bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md items-center gap-2 text-sm sm:text-base">
-                    <i class="fa-solid fa-eye h-4 w-4 sm:h-5 sm:w-5"></i>
-                    <span class="font-medium">Ver Página</span>
-                </a>
-                <!-- Botão de logout removido pois agora está no menu do usuário -->
-                
             </div>
         </header>
 
