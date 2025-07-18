@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Modo Escuro - Construktor</title>
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+<script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script></head>
+<body class="bg-slate-50 text-slate-800">
+    <!-- Header Simulado -->
+    <header class="bg-white border-b border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between px-4 py-3">
+            <!-- Menu Construktor -->
+            <div class="relative">
+                <button id="construktor-menu-button" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg">
+                    <i class="fa-solid fa-cube text-lg"></i>
+                    <span class="font-bold text-lg">Construktor</span>
+                    <i class="fa-solid fa-chevron-down text-sm"></i>
+                </button>
+                
+                <!-- Dropdown Menu -->
+                <div id="construktor-menu-dropdown" class="absolute left-0 top-full mt-2 w-64 bg-white border border-slate-200 rounded-lg shadow-lg z-50">
+                    <div class="py-2">
+                        <a href="#" class="flex items-center gap-3 px-4 py-2 text-slate-600 hover:bg-slate-100 transition-colors">
+                            <i class="fa-solid fa-home w-4"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-4 py-2 text-slate-600 hover:bg-slate-100 transition-colors">
+                            <i class="fa-solid fa-cube w-4"></i>
+                            <span>Módulos</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-4 py-2 text-slate-600 hover:bg-slate-100 transition-colors active">
+                            <i class="fa-solid fa-table w-4"></i>
+                            <span>Entidades</span>
+                        </a>
+                        <hr class="my-2 border-slate-200">
+                        <a href="#" class="flex items-center gap-3 px-4 py-2 text-slate-600 hover:bg-slate-100 transition-colors">
+                            <i class="fa-solid fa-cog w-4"></i>
+                            <span>Configurações</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Menu -->
+            <div class="relative">
+                <button id="user-menu-button" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+                    <div class="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                        U
+                    </div>
+                    <span class="text-slate-700 font-medium">Usuário</span>
+                    <i class="fa-solid fa-chevron-down text-slate-400 text-sm"></i>
+                </button>
+                
+                <!-- User Dropdown -->
+                <div id="user-menu-dropdown" class="absolute right-0 top-full mt-2 w-56 bg-white border border-slate-200 rounded-lg shadow-lg z-50 hidden">
+                    <div class="py-2">
+                        <div class="flex items-center gap-3 px-4 py-2">
+                            <div class="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center text-white font-medium">
+                                U
+                            </div>
+                            <div>
+                                <div class="font-medium text-slate-800">Usuário Teste</div>
+                                <div class="text-sm text-slate-600">teste@exemplo.com</div>
+                            </div>
+                        </div>
+                        <hr class="my-2 border-slate-200">
+                        
+                        <!-- Seletor de Tema -->
+                        <div class="flex items-center justify-between px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-palette h-4 w-4"></i>
+                                <span>Tema</span>
+                            </div>
+                            <button id="theme-toggle-header" class="theme-toggle flex items-center gap-1 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                                <i class="theme-icon fa-solid fa-sun h-3 w-3 text-amber-500"></i>
+                                <i class="theme-icon fa-solid fa-moon h-3 w-3 text-indigo-500 hidden"></i>
+                            </button>
+                        </div>
+                        
+                        <hr class="my-2 border-slate-200">
+                        <a href="#" class="flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors">
+                            <i class="fa-solid fa-sign-out-alt w-4"></i>
+                            <span>Sair</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <main class="p-6">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-2xl font-bold text-slate-800 mb-4">Teste do Modo Escuro</h1>
+            <p class="text-slate-600 mb-6">
+                Use o seletor de tema no menu do usuário para alternar entre modo claro e escuro.
+                Observe o comportamento das cores no menu "Construktor" durante o hover.
+            </p>
+            
+            <div class="bg-white rounded-lg shadow-md p-6 border border-slate-200">
+                <h2 class="text-lg font-semibold text-slate-800 mb-3">Card de Exemplo</h2>
+                <p class="text-slate-600">
+                    Este é um card de exemplo para testar as cores em diferentes modos.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Simplified Dark Mode Toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle dropdowns
+            document.getElementById('construktor-menu-button').addEventListener('click', function(e) {
+                e.stopPropagation();
+                const dropdown = document.getElementById('construktor-menu-dropdown');
+                dropdown.classList.toggle('hidden');
+            });
+            
+            document.getElementById('user-menu-button').addEventListener('click', function(e) {
+                e.stopPropagation();
+                const dropdown = document.getElementById('user-menu-dropdown');
+                dropdown.classList.toggle('hidden');
+            });
+            
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function() {
+                document.getElementById('construktor-menu-dropdown').classList.add('hidden');
+                document.getElementById('user-menu-dropdown').classList.add('hidden');
+            });
+            
+            // Dark mode toggle
+            const themeToggle = document.getElementById('theme-toggle-header');
+            const sunIcon = themeToggle.querySelector('.fa-sun');
+            const moonIcon = themeToggle.querySelector('.fa-moon');
+            
+            function updateTheme(isDark) {
+                if (isDark) {
+                    document.documentElement.classList.add('dark');
+                    document.body.classList.remove('bg-slate-50', 'text-slate-800');
+                    document.body.classList.add('bg-slate-900', 'text-slate-200');
+                    sunIcon.classList.add('hidden');
+                    moonIcon.classList.remove('hidden');
+                    localStorage.setItem('dark-mode', 'true');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.body.classList.remove('bg-slate-900', 'text-slate-200');
+                    document.body.classList.add('bg-slate-50', 'text-slate-800');
+                    sunIcon.classList.remove('hidden');
+                    moonIcon.classList.add('hidden');
+                    localStorage.setItem('dark-mode', 'false');
+                }
+            }
+            
+            // Initialize theme - start in dark mode for testing
+            updateTheme(true);
+            
+            // Toggle theme
+            themeToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const isDark = document.documentElement.classList.contains('dark');
+                updateTheme(!isDark);
+            });
+        });
+    </script>
+</body>
+</html>
