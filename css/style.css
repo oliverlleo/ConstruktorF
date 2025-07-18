@@ -21,6 +21,63 @@ body {
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
+/* Garantir que elementos base não sejam afetados pelo modo escuro */
+html:not(.dark) body {
+    background-color: #f8fafc !important;
+    color: #1e293b !important;
+}
+
+/* Elementos que devem manter sua cor original no modo claro */
+html:not(.dark) .bg-gradient-to-r.from-indigo-600.to-purple-600 {
+    background: linear-gradient(to right, #4f46e5, #8b5cf6) !important;
+}
+
+html:not(.dark) .text-white {
+    color: white !important;
+}
+
+/* Proteções para evitar interferência entre modos */
+html:not(.dark) .text-slate-600 {
+    color: #64748b !important;
+}
+
+html:not(.dark) .text-slate-700 {
+    color: #334155 !important;
+}
+
+html:not(.dark) .text-slate-800 {
+    color: #1e293b !important;
+}
+
+html:not(.dark) .bg-slate-100 {
+    background-color: #f1f5f9 !important;
+}
+
+html:not(.dark) .bg-slate-50 {
+    background-color: #f8fafc !important;
+}
+
+html:not(.dark) .border-slate-200 {
+    border-color: #e2e8f0 !important;
+}
+
+/* Proteções para botões e elementos interativos no modo claro */
+html:not(.dark) .hover\:bg-slate-100:hover {
+    background-color: #f1f5f9 !important;
+}
+
+html:not(.dark) .hover\:bg-slate-50:hover {
+    background-color: #f8fafc !important;
+}
+
+html:not(.dark) .hover\:text-slate-600:hover {
+    color: #64748b !important;
+}
+
+html:not(.dark) .hover\:text-slate-700:hover {
+    color: #334155 !important;
+}
+
 /* Estilos específicos para modo escuro */
 .dark .bg-white {
     background-color: #334155 !important;
@@ -1177,4 +1234,81 @@ pre {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Garante que o dropdown se posicione em relação ao seu novo pai */
+#settings-menu-button-wrapper { /* Dê este ID ao div com `position: relative` se precisar */
+    position: relative;
+}
+
+#user-menu-dropdown {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 0.5rem; /* Ajuste conforme necessário */
+    z-index: 50;
+}
+
+/* Estilos para o Dropdown do Menu Principal */
+#construktor-menu-dropdown {
+    background-color: white;
+    border-color: #e2e8f0;
+}
+
+#construktor-menu-dropdown a {
+    transition: background-color 0.2s ease, color 0.2s ease;
+    color: #64748b; /* slate-600 - cor padrão para modo claro */
+}
+
+#construktor-menu-dropdown a:hover {
+    background-color: #f1f5f9; /* slate-100 - fundo hover modo claro */
+    color: #475569; /* slate-600 - texto hover modo claro */
+}
+
+#construktor-menu-dropdown a.active {
+    background-color: #e0e7ff; /* indigo-100 */
+    font-weight: 600;
+    color: #4f46e5; /* indigo-600 */
+}
+
+/* Garantir que o dropdown funcione corretamente no modo claro */
+html:not(.dark) #construktor-menu-dropdown {
+    background-color: white !important;
+    border-color: #e2e8f0 !important;
+}
+
+html:not(.dark) #construktor-menu-dropdown a {
+    color: #64748b !important; /* slate-600 - cor padrão para modo claro */
+}
+
+html:not(.dark) #construktor-menu-dropdown a:hover {
+    background-color: #f1f5f9 !important; /* slate-100 - fundo hover modo claro */
+    color: #475569 !important; /* slate-600 - texto hover modo claro */
+}
+
+html:not(.dark) #construktor-menu-dropdown a.active {
+    background-color: #e0e7ff !important; /* indigo-100 */
+    color: #4f46e5 !important; /* indigo-600 */
+    font-weight: 600;
+}
+
+/* Modo escuro para dropdown do menu */
+.dark #construktor-menu-dropdown {
+    background-color: #334155 !important;
+    border-color: #475569 !important;
+}
+
+.dark #construktor-menu-dropdown a {
+    color: #e2e8f0 !important; /* Cor padrão do texto no modo escuro */
+}
+
+.dark #construktor-menu-dropdown a:hover {
+    background-color: #475569 !important; /* Fundo ao passar o mouse no modo escuro */
+    color: #f1f5f9 !important; /* Texto mais claro no hover modo escuro */
+}
+
+.dark #construktor-menu-dropdown a.active {
+    background-color: #312e81 !important; /* indigo-900 para um destaque mais escuro no modo escuro */
+    color: #a5b4fc !important; /* indigo-300 para o texto ativo no modo escuro */
+    font-weight: 600;
 }

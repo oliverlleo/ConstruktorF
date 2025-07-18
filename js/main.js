@@ -17,6 +17,7 @@ import { initWorkspaces, getCurrentWorkspace } from './workspaces.js';
 // Variáveis globais
 let db;
 let modalNavigationStack = [];
+let construktorMenuActive = false;
 
 // Função helper para buscar entidade por ID
 function getEntityById(entityId) {
@@ -671,7 +672,86 @@ function setupEventListeners() {
             }
         });
     }
+
+    // Construktor Menu Logic
+    const construktorMenuToggle = document.getElementById('construktor-menu-toggle');
+    const construktorMenuDropdown = document.getElementById('construktor-menu-dropdown');
+    const construktorToggleIcon = document.getElementById('construktor-toggle-icon'); // Novo ID para o ícone
+    const navItems = document.querySelectorAll('#construktor-menu-dropdown a'); // Seleciona todos os itens de navegação
+
+    if (construktorMenuToggle && construktorMenuDropdown && construktorToggleIcon) {
+        construktorMenuToggle.addEventListener('click', (event) => {
+            event.stopPropagation();
+            construktorMenuDropdown.classList.toggle('hidden');
+            construktorMenuActive = !construktorMenuActive;
+            updateConstruktorMenuVisualState(); // Renomeada para clareza
+        });
+
+        document.addEventListener('click', (event) => {
+            if (construktorMenuActive && !construktorMenuDropdown.contains(event.target) && !construktorMenuToggle.contains(event.target)) {
+                construktorMenuDropdown.classList.add('hidden');
+                construktorMenuActive = false;
+                updateConstruktorMenuVisualState(); // Renomeada para clareza
+            }
+        });
+
+        // Função auxiliar para atualizar o ícone e a classe 'active'
+        function updateConstruktorMenuVisualState() {
+            if (construktorMenuActive) {
+                construktorToggleIcon.classList.remove('fa-chevron-down');
+                construktorToggleIcon.classList.add('fa-chevron-up');
+            } else {
+                construktorToggleIcon.classList.remove('fa-chevron-up');
+                construktorToggleIcon.classList.add('fa-chevron-down');
+            }
+            // createIcons() é chamado em setActiveMenuItem se necessário, ou globalmente.
+            // Não é estritamente necessário aqui se apenas classes FA são trocadas.
+        }
+
+        // Adiciona a lógica para o item ativo do menu
+        function setActiveMenuItem() {
+            const currentPath = window.location.pathname;
+            navItems.forEach(item => {
+                // Remove a classe 'active' de todos
+                item.classList.remove('active');
+                // As classes de cor e font-weight são agora controladas pelo CSS através de .active
+
+                // Verifica qual item deve ser ativo
+                // (Verifica se o pathname termina com 'index.html' ou é exatamente '/')
+                if ((currentPath.endsWith('index.html') || currentPath === '/') && item.id === 'nav-module-builder') {
+                    item.classList.add('active');
+                }
+                // Adicionar mais condições para outras páginas futuras aqui
+                // Exemplo: else if (currentPath.includes('flow-designer.html') && item.id === 'nav-flow-designer') {
+                //    item.classList.add('active');
+                // }
+            });
+            // createIcons(); // Descomente se algum ícone dentro dos navItems mudar com base no estado ativo
+        }
+
+        // Chame a função para definir o item ativo ao carregar a página
+        setActiveMenuItem();
+        // Chame a função de atualização do ícone ao carregar para garantir o estado inicial correto.
+        updateConstruktorMenuVisualState();
+    }
 }
+
+// // Função auxiliar para atualizar o ícone do toggle do menu Construktor (agora integrada em updateConstruktorMenuVisualState)
+// function updateConstruktorMenuIcon() {
+//     const construktorMenuToggle = document.getElementById('construktor-menu-toggle');
+//     if (!construktorMenuToggle) return;
+//     const toggleIcon = construktorMenuToggle.querySelector('i#construktor-toggle-icon'); // Mais específico
+//     if (toggleIcon) {
+//         if (construktorMenuActive) {
+//             toggleIcon.classList.remove('fa-chevron-down');
+//             toggleIcon.classList.add('fa-chevron-up');
+//         } else {
+//             toggleIcon.classList.remove('fa-chevron-up');
+//             toggleIcon.classList.add('fa-chevron-down');
+//         }
+//     }
+// }
+
 
 async function handleEntityDrop(event) {
     const { item, to, from } = event;

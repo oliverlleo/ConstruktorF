@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Designer de Fluxos - Construktor</title>
+    <link rel="icon" href="../imagem/logo.png" type="image/png">
+    <!-- Dependências Externas -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
+    <script>
+        // Funções para controle do menu mobile e ícones
+        document.addEventListener('DOMContentLoaded', function() {
+            // Menu mobile toggle
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener('click', function() {
+                    const sidebar = document.getElementById('desktop-sidebar');
+                    sidebar.classList.remove('-translate-x-full');
+                    sidebar.classList.add('translate-x-0');
+                });
+            }
+            
+            // Fechar menu mobile
+            const closeMobileMenu = document.getElementById('close-mobile-menu');
+            if (closeMobileMenu) {
+                closeMobileMenu.addEventListener('click', function() {
+                    const sidebar = document.getElementById('desktop-sidebar');
+                    sidebar.classList.remove('translate-x-0');
+                    sidebar.classList.add('-translate-x-full');
+                });
+            }
+            
+            // Configuração para ícones Lucide
+            if (window.lucide) {
+                let isUpdatingIcons = false;
+                
+                function updateLucideIcons() {
+                    if (isUpdatingIcons) return;
+                    isUpdatingIcons = true;
+                    
+                    try {
+                        lucide.createIcons();
+                        console.log('Ícones Lucide atualizados com sucesso');
+                    } catch (error) {
+                        console.warn('Erro ao atualizar ícones:', error);
+                    } finally {
+                        isUpdatingIcons = false;
+                    }
+                }
+                
+                updateLucideIcons();
+                window.addEventListener('load', function() {
+                    setTimeout(updateLucideIcons, 300);
+                });
+                
+                // Observador para novos elementos
+                let timeout;
+                const observer = new MutationObserver(function(mutations) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => {
+                        let hasNewNodes = false;
+                        
+                        for (const mutation of mutations) {
+                            if (mutation.addedNodes && mutation.addedNodes.length) {
+                                for (const node of mutation.addedNodes) {
+                                    if (node.nodeType === 1) {
+                                        if (node.hasAttribute && node.hasAttribute('data-lucide')) {
+                                            hasNewNodes = true;
+                                            break;
+                                        }
+                                        if (node.querySelector && node.querySelector('[data-lucide]')) {
+                                            hasNewNodes = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (hasNewNodes) break;
+                            }
+                        }
+                        
+                        if (hasNewNodes) {
+                            observer.disconnect();
+                            updateLucideIcons();
+                            observer.observe(document.body, {
+                                childList: true,
+                                subtree: true
+                            });
+                        }
+                    }, 100);
+                });
+                
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+                
+                window.updateLucideIcons = updateLucideIcons;
+            }
+        });
+    </script>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-functions-compat.js"></script>
+
+    <!-- Link para o ficheiro CSS externo -->
+    <link rel="stylesheet" href="../css/style.css">
+    
+    <!-- Estilos específicos para o Designer de Fluxos -->
+    <style>
+        /* Estilos para a área de fluxos com zoom e pan */
+        .flow-canvas {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: radial-gradient(circle, #e2e8f0 1px, transparent 1px);
+            background-size: 20px 20px;
+            cursor: grab;
+        }
+        
+        .flow-canvas:active {
+            cursor: grabbing;
+        }
+        
+        .flow-canvas.zooming {
+            cursor: zoom-in;
+        }
+        
+        .flow-viewport {
+            transform-origin: 0 0;
+            transition: transform 0.1s ease-out;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .flow-module {
+            position: absolute;
+            cursor: move;
+            user-select: none;
+            transition: transform 0.1s ease-out;
+        }
+        
+        .flow-module:hover {
+            z-index: 10;
+        }
+        
+        .flow-module.dragging {
+            z-index: 20;
+            transform: scale(1.05);
+        }
+        
+        /* Indicador de zoom */
+        .zoom-indicator {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            z-index: 30;
+        }
+        
+        /* Controles de zoom */
+        .zoom-controls {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 30;
+        }
+        
+        .zoom-btn {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .zoom-btn:hover {
+            background: #f8fafc;
+            border-color: #6366f1;
+        }
+        
+        /* Instruções de uso */
+        .flow-instructions {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            max-width: 250px;
+            font-size: 0.875rem;
+            z-index: 30;
+            backdrop-filter: blur(4px);
+        }
+        
+        .flow-instructions h4 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+        
+        .flow-instructions ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .flow-instructions li {
+            margin-bottom: 0.25rem;
+            color: #6b7280;
+        }
+        
+        .flow-instructions .key {
+            background: #f3f4f6;
+            padding: 0.125rem 0.25rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            font-size: 0.75rem;
+        }
+    </style>
+<script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script></head>
+<body class="text-slate-800 bg-slate-50">
+
+    <!-- Indicador de Carregamento Visual -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- ESTRUTURA PRINCIPAL DA APLICAÇÃO -->
+    <div id="app" class="h-screen w-screen flex flex-col overflow-hidden" style="display: none;">
+        
+        <header class="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 flex justify-between items-center shadow-sm z-30 sticky top-0">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button id="mobile-menu-toggle" class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 sm:hidden">
+                    <i class="fa-solid fa-bars w-6 h-6"></i>
+                </button>
+                <div class="flex items-center gap-2 sm:gap-3 p-2 relative">
+                    <button id="construktor-menu-toggle" class="flex items-center gap-2 sm:gap-3 p-2 -ml-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <img src="../imagem/logo.png" alt="Construktor Logo" class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-md">
+                        <h1 class="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-200">Construktor</h1>
+                        <i id="construktor-toggle-icon" class="fa-solid fa-chevron-down h-4 w-4 text-slate-500 dark:text-slate-400 ml-1"></i>
+                    </button>
+                    <div id="construktor-menu-dropdown" class="absolute left-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-slate-200 p-2 z-50 hidden dark:bg-slate-800 dark:border-slate-700">
+                        <a href="../index.html" id="nav-module-builder" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-slate-300">
+                            <i class="fa-solid fa-cubes h-4 w-4"></i>
+                            <span>Modelador de Módulos</span>
+                        </a>
+                        <a href="flow-designer.html" id="nav-flow-designer" class="flex items-center gap-3 px-3 py-2 rounded-md bg-indigo-50 text-indigo-600 font-medium">
+                            <i class="fa-solid fa-diagram-flow h-4 w-4"></i>
+                            <span>Designer de Fluxos</span>
+                        </a>
+                        <a href="#" id="nav-page-builder" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600 dark:hover:bg-slate-700 dark:text-slate-300">
+                            <i class="fa-solid fa-file-lines h-4 w-4"></i>
+                            <span>Construtor de Páginas</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-4">
+                <button id="help-button" class="text-slate-600 hover:text-indigo-600 transition-colors flex items-center gap-1" title="Mostrar/ocultar dicas">
+                    <i class="fa-solid fa-circle-question h-5 w-5"></i>
+                    <span class="text-sm font-medium hidden sm:inline">Ajuda</span>
+                </button>
+                <!-- Botões removidos, mas mantendo link para pages/code-view.html para funcionalidade -->
+                <!-- Botão de logout removido pois agora está no menu do usuário -->
+                <div class="relative">
+                    <button id="settings-menu-button" class="text-slate-600 hover:text-indigo-600 transition-colors p-2 rounded-lg hover:bg-slate-100">
+                        <i class="fa-solid fa-gear h-5 w-5"></i>
+                    </button>
+                    <div id="user-menu-dropdown" class="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-slate-200 p-2 z-50 hidden">
+                        <div class="p-2">
+                            <p class="text-xs text-slate-500">Logado como</p>
+                            <div class="flex items-center gap-2 mt-1">
+                                <img id="user-avatar-preview" src="https://ui-avatars.com/api/?background=random" class="h-8 w-8 rounded-full">
+                                <span id="user-display-name" class="font-semibold text-slate-700">Carregando...</span>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+                        <a href="#" id="edit-profile-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600">
+                            <i class="fa-solid fa-gear h-4 w-4"></i>
+                            <span>Configurações do Perfil</span>
+                        </a>
+                        <a href="#" id="invite-user-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600">
+                            <i class="fa-solid fa-user-plus h-4 w-4"></i>
+                            <span>Convidar</span>
+                        </a>
+                        <a href="#" id="manage-invites-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600 relative">
+                            <i class="fa-solid fa-inbox h-4 w-4"></i>
+                            <span>Gerenciar Convites</span>
+                            <span id="menu-invites-badge" class="absolute hidden top-1 right-2 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">0</span>
+                        </a>
+                        <hr class="my-2">
+                        <a href="#" id="logout-button" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600">
+                            <i class="fa-solid fa-right-from-bracket h-4 w-4"></i>
+                            <span>Sair</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 flex overflow-hidden relative">
+            <!-- Sidebar para desktop -->
+            <aside id="desktop-sidebar" class="w-64 sm:w-80 bg-white border-r border-slate-200 flex flex-col overflow-hidden shadow-sm h-full absolute inset-y-0 left-0 transform -translate-x-full sm:translate-x-0 transition-transform duration-300 ease-in-out z-20">
+                <div class="p-4 border-b border-slate-200 flex justify-between items-center sm:hidden">
+                    <h2 class="font-bold text-lg text-indigo-800">Biblioteca</h2>
+                    <button id="close-mobile-menu" class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100">
+                        <i class="fa-solid fa-xmark w-5 h-5"></i>
+                    </button>
+                </div>
+                
+                <div class="p-4 sm:p-5 border-b border-slate-200 hidden sm:block">
+                    <h2 class="font-bold text-lg flex items-center gap-2 text-indigo-800">
+                        <i class="fa-solid fa-cubes text-indigo-600"></i> Biblioteca de Módulos
+                    </h2>
+                    <p class="text-sm text-slate-500 mt-1">Arraste os módulos para criar fluxos</p>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5">
+                    <!-- Seletor de Área de Trabalho -->
+                    <div id="workspace-selector" class="mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-sm font-semibold text-slate-700 flex items-center gap-1">
+                                <i class="fa-solid fa-briefcase h-4 w-4 text-purple-500"></i> Área de Trabalho
+                            </h3>
+                            <button id="share-workspace-btn" class="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded-full hover:bg-purple-100 transition-all">
+                                <i class="fa-solid fa-share-nodes h-3 w-3 inline-block mr-1"></i>Compartilhar
+                            </button>
+                        </div>
+                        
+                        <div class="flex gap-1">
+                            <select id="workspace-select" class="flex-1 text-sm border border-slate-300 rounded-lg px-2 py-1.5 text-slate-700 bg-white focus:outline-none focus:ring-1 focus:ring-purple-500">
+                                <option value="">Carregando...</option>
+                            </select>
+                            <!-- Removido botão de adicionar workspace -->
+                        </div>
+                    </div>
+
+                    <div id="module-library">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-md font-semibold text-slate-700 flex items-center gap-1">
+                                <i class="fa-solid fa-puzzle-piece h-4 w-4 text-indigo-500"></i> Módulos
+                            </h3>
+                            <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">Arraste →</span>
+                        </div>
+                        
+                        <div id="module-list" class="space-y-2.5">
+                            <!-- Os módulos serão carregados dinamicamente aqui -->
+                        </div>
+                        
+                        <div id="no-modules-message" class="hidden bg-slate-50 rounded-lg p-3 text-center text-slate-500 border border-slate-200">
+                            <i class="fa-solid fa-circle-info h-5 w-5 mx-auto mb-2 text-slate-400"></i>
+                            <p class="text-xs sm:text-sm">Nenhum módulo encontrado nesta área de trabalho</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Seção de Recursos Compartilhados -->
+                    <div id="shared-resources" class="mt-5 pt-5 border-t border-slate-200">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm sm:text-md font-semibold text-slate-700 flex items-center gap-1">
+                                <i class="fa-solid fa-share-nodes h-4 w-4 text-emerald-500"></i> 
+                                <span class="hidden sm:inline">Compartilhados Comigo</span>
+                                <span class="sm:hidden">Compartilhados</span>
+                            </h3>
+                            <div>
+                                <button id="refresh-shared-resources" class="text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full hover:bg-emerald-100 transition-all">
+                                    <i class="fa-solid fa-arrows-rotate h-3 w-3 inline-block mr-1"></i>
+                                    <span class="hidden sm:inline">Atualizar</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="shared-resources-list" class="space-y-2.5">
+                            <!-- Aqui serão adicionados os recursos compartilhados -->
+                        </div>
+                        
+                        <div id="no-shared-resources" class="bg-slate-50 rounded-lg p-3 text-center text-slate-500 border border-slate-200">
+                            <i class="fa-solid fa-circle-info h-5 w-5 mx-auto mb-2 text-slate-400"></i>
+                            <p class="text-xs sm:text-sm">Nenhum recurso compartilhado encontrado</p>
+                        </div>
+                    </div>
+
+                    <div id="quick-tip" class="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 rounded-lg border border-indigo-100 shadow-sm transition-all duration-300">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-semibold text-indigo-800 flex items-center gap-2 mb-2">
+                                <i class="fa-solid fa-lightbulb h-4 w-4 text-amber-500"></i> Dica Rápida
+                            </h3>
+                            <button class="close-tip-btn text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-white/50" data-tip-id="quick-tip">
+                                <i class="fa-solid fa-xmark h-4 w-4"></i>
+                            </button>
+                        </div>
+                        <p class="text-sm text-slate-700">Arraste módulos para a área de fluxos para criar conexões e visualizar o fluxo de trabalho do seu sistema.</p>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Barra de redimensionamento - visível apenas em desktop -->
+            <div id="resize-handle" class="cursor-col-resize w-1 bg-indigo-300 hover:bg-indigo-500 transition-colors absolute inset-y-0 left-80 z-30 opacity-0 sm:opacity-100 hover:w-2 hover:opacity-70 hidden sm:block"></div>
+            
+            <!-- Conteúdo principal - Área de Fluxos -->
+            <section class="flex-1 overflow-hidden flex flex-col sm:ml-80">
+                <div class="border-b border-slate-200 bg-white py-3 px-4 sm:px-6 flex justify-between items-center shadow-sm">
+                    <h2 class="text-lg sm:text-xl font-bold flex items-center gap-2 text-slate-800">
+                        <i class="fa-solid fa-diagram-flow text-indigo-500"></i> Área de Fluxos
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-slate-500 hidden sm:inline">Use o scroll para zoom, barra de espaço para centralizar</span>
+                    </div>
+                </div>
+                
+                <div class="flex-1 overflow-hidden relative">
+                    <!-- Canvas de Fluxo -->
+                    <div id="flow-canvas" class="flow-canvas">
+                        <div id="flow-viewport" class="flow-viewport">
+                            <!-- Os módulos de fluxo serão adicionados aqui dinamicamente -->
+                        </div>
+                        
+                        <!-- Instruções de uso -->
+                        <div class="flow-instructions" id="flow-instructions">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4>Controles:</h4>
+                                <button class="close-tip-btn text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-white/50" data-tip-id="flow-instructions">
+                                    <i class="fa-solid fa-xmark h-4 w-4"></i>
+                                </button>
+                            </div>
+                            <ul>
+                                <li>• Scroll do mouse: Zoom</li>
+                                <li>• Arrastar: Mover área</li>
+                                <li>• <span class="key">Espaço</span>: Centralizar</li>
+                                <li>• Arraste módulos da lateral</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Controles de zoom -->
+                        <div class="zoom-controls">
+                            <button id="zoom-in-btn" class="zoom-btn" title="Aumentar zoom">
+                                <i class="fa-solid fa-plus text-slate-600"></i>
+                            </button>
+                            <button id="zoom-out-btn" class="zoom-btn" title="Diminuir zoom">
+                                <i class="fa-solid fa-minus text-slate-600"></i>
+                            </button>
+                            <button id="zoom-reset-btn" class="zoom-btn" title="Resetar zoom">
+                                <i class="fa-solid fa-expand text-slate-600"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Indicador de zoom -->
+                        <div class="zoom-indicator" id="zoom-indicator">
+                            Zoom: 100%
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Templates para módulos de fluxo -->
+    <template id="flow-module-template">
+        <div class="flow-module bg-white rounded-xl shadow-md border border-slate-200 p-4 cursor-move hover:shadow-lg transition-all relative group" 
+             style="width: 200px; min-height: 120px;" 
+             data-module-id="" data-module-name="">
+            <!-- Botão de remover -->
+            <button class="remove-module-btn absolute -top-2 -right-2 h-6 w-6 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs" 
+                    title="Remover módulo">
+                <i class="fa-solid fa-times"></i>
+            </button>
+            
+            <div class="flex items-center gap-3 mb-3">
+                <div class="h-10 w-10 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white">
+                    <i class="fa-solid fa-puzzle-piece h-5 w-5"></i>
+                </div>
+                <div>
+                    <h3 class="module-title font-bold text-slate-800 text-sm"></h3>
+                    <p class="text-xs text-slate-500">Módulo</p>
+                </div>
+            </div>
+            <div class="text-xs text-slate-600">
+                <span class="entities-count">0 entidades</span>
+            </div>
+        </div>
+    </template>
+
+    <!-- Scripts -->
+    <script src="../js/flow-designer.js"></script>
+    <!-- Script do Modo Escuro -->
+    <script src="../js/dark-mode.js"></script>
+</body>
+</html>

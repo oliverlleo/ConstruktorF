@@ -133,6 +133,7 @@ invites/
 - CSS com seletores `.dark`
 - Transições suaves (0.3s)
 - Persistência com localStorage
+- **CORREÇÃO 2025-01**: Adicionadas proteções para evitar interferência entre modos claro/escuro
 
 ### Componentes Afetados
 - Todas as páginas (index, login, code-view)
@@ -144,6 +145,12 @@ invites/
 - **Login**: Botão fixo superior direito
 - **Aplicação**: Dentro do menu do usuário
 - **Ícones**: Sol (claro) / Lua (escuro)
+
+### Correções Aplicadas
+- **Problema**: Modo escuro afetando cores no modo claro
+- **Solução**: Regras CSS específicas com `html:not(.dark)` para proteger o modo claro
+- **Área afetada**: Menu dropdown do Construktor e elementos de hover
+- **Status**: ✅ Resolvido
 
 ## Manutenção
 

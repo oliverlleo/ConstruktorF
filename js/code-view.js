@@ -1,504 +1,394 @@
-// Estrutura de arquivos e diretórios do sistema - VERSÃO ATUALIZADA
-const fileStructure = {
-    // Arquivos principais
+// Definição dos arquivos do sistema
+const files = {
     'index.html': { path: '../index.html', type: 'html' },
     'css/style.css': { path: '../css/style.css', type: 'css' },
-    'js/config.js': { path: '../js/config.js', type: 'javascript' },
-    'js/autenticacao.js': { path: '../js/autenticacao.js', type: 'javascript' },
-    'js/database.js': { path: '../js/database.js', type: 'javascript' },
-    'js/ui.js': { path: '../js/ui.js', type: 'javascript' },
-    'js/main.js': { path: '../js/main.js', type: 'javascript' },
-    'js/workspaces.js': { path: '../js/workspaces.js', type: 'javascript' },
-    'js/login.js': { path: '../js/login.js', type: 'javascript' },
-    'js/code-view.js': { path: '../js/code-view.js', type: 'javascript' },
-    'js/dark-mode.js': { path: '../js/dark-mode.js', type: 'javascript' },
-    'js/ui-enhancements.js': { path: '../js/ui-enhancements.js', type: 'javascript' },
-    'js/user/userProfile.js': { path: '../js/user/userProfile.js', type: 'javascript' },
-    'js/user/invitations.js': { path: '../js/user/invitations.js', type: 'javascript' },
+    'js/config.js': { path: '../js/config.js', type: 'js' },
+    'js/autenticacao.js': { path: '../js/autenticacao.js', type: 'js' },
+    'js/database.js': { path: '../js/database.js', type: 'js' },
+    'js/ui.js': { path: '../js/ui.js', type: 'js' },
+    'js/main.js': { path: '../js/main.js', type: 'js' },
+    'js/workspaces.js': { path: '../js/workspaces.js', type: 'js' },
+    'js/login.js': { path: '../js/login.js', type: 'js' },
+    'js/dark-mode.js': { path: '../js/dark-mode.js', type: 'js' },
+    'js/ui-enhancements.js': { path: '../js/ui-enhancements.js', type: 'js' },
+    'js/code-view.js': { path: '../js/code-view.js', type: 'js' },
+    'js/flow-designer.js': { path: '../js/flow-designer.js', type: 'js' },
+    'js/user/userProfile.js': { path: '../js/user/userProfile.js', type: 'js' },
+    'js/user/invitations.js': { path: '../js/user/invitations.js', type: 'js' },
     'pages/login.html': { path: '../pages/login.html', type: 'html' },
-    'pages/code-view.html': { path: 'code-view.html', type: 'html' },
+    'pages/code-view.html': { path: '../pages/code-view.html', type: 'html' },
+    'pages/code-view2.html': { path: '../pages/code-view2.html', type: 'html' },
+    'pages/code-vieww.html': { path: '../pages/code-vieww.html', type: 'html' },
     'pages/user-view.html': { path: '../pages/user-view.html', type: 'html' },
-    
-    // Arquivos de imagem
+    'pages/flow-designer.html': { path: '../pages/flow-designer.html', type: 'html' },
     'imagem/logo.png': { path: '../imagem/logo.png', type: 'image' },
-    
-    // Arquivos de documentação e configuração
-    'YOUWARE.md': { path: '../YOUWARE.md', type: 'markdown' },
-    'README.md': { content: `# Construktor - Sistema de Criação de ERP/CRM
-
-## Descrição
-Construktor é uma plataforma visual que permite a criação de sistemas ERP/CRM através de uma interface intuitiva de arrastar e soltar (drag and drop). Oferece funcionalidades para definir módulos, entidades e campos personalizados.
-
-## Funcionalidades Principais
-
-### Construção de Módulos
-- Crie módulos para organizar seu sistema (ex: Vendas, Compras, RH)
-- Arraste e solte entidades nos módulos
-- Reorganize módulos livremente
-- **NOVO**: Edite nomes de módulos facilmente
-- **NOVO**: Confirmação ao remover entidades
-
-### Gerenciamento de Entidades
-- Biblioteca de entidades pré-definidas
-- Criação de entidades personalizadas
-- Personalização de campos e propriedades
-- **NOVO**: Edição de nomes de entidades
-- **NOVO**: Suporte a nomes longos com quebra de linha
-- **NOVO**: Transferência de entidades entre módulos
-
-### Interface Responsiva e Personalizável
-- Design mobile-first
-- Suporte a dispositivos touchscreen
-- **NOVO**: Biblioteca de componentes redimensionável
-- **NOVO**: Modo escuro/claro com tema padrão claro
-- **NOVO**: Novo logo personalizado
-
-### Melhorias de UX
-- **NOVO**: Confirmação antes de excluir entidades
-- **NOVO**: Feedback visual durante operações de drag-and-drop
-- **NOVO**: Persistência de preferências de interface
-- Funcionalidade Enter para envio de formulários
-
-## Tecnologias Utilizadas
-- HTML5, CSS3, JavaScript (ES6+)
-- Firebase (Autenticação, Banco de Dados, Storage)
-- TailwindCSS para estilização
-- SortableJS para funcionalidades de arrastar e soltar
-- Lucide e Font Awesome para ícones
-- SweetAlert2 para diálogos
-
-## Arquitetura Modular
-- **js/main.js**: Coordenação geral da aplicação
-- **js/ui-enhancements.js**: Melhorias avançadas de interface
-- **js/dark-mode.js**: Gerenciamento de temas
-- **js/login.js**: Sistema de autenticação
-- **css/style.css**: Estilos responsivos e modo escuro
-
-## Como Usar
-1. Faça login com sua conta
-2. Crie uma área de trabalho
-3. Adicione módulos ao seu sistema
-4. Arraste entidades para os módulos
-5. **NOVO**: Edite nomes clicando nos botões de edição
-6. **NOVO**: Redimensione a biblioteca conforme necessário
-7. Configure campos e visualize sua criação
-
-## Novidades desta Versão
-- ✅ Tema padrão claro (não mais escuro)
-- ✅ Edição de nomes de módulos e entidades
-- ✅ Transferência de entidades entre módulos (corrigido)
-- ✅ Barra de redimensionamento da biblioteca (apenas em desktop)
-- ✅ Novo logo personalizado
-- ✅ Melhor feedback visual
-- ✅ Quebra de linha para nomes longos
-- ✅ Experiência melhorada em dispositivos móveis
-- ✅ Drag and drop otimizado e corrigido
-
-## Licença
-Este projeto é protegido por direitos autorais. Todos os direitos reservados.`, type: 'markdown' }
+    'imagem/logoconstruktor.png': { path: '../imagem/logoconstruktor.png', type: 'image' },
+    'README.md': { path: '../README.md', type: 'md' },
+    'read.md': { path: '../read.md', type: 'md' },
+    'YOUWARE.md': { path: '../YOUWARE.md', type: 'md' },
+    'teste-dark-backup.html': { path: '../teste-dark-backup.html', type: 'html' },
+    'todo.json': { path: '../todo.json', type: 'json' }
 };
 
-// Código fonte dos arquivos
-const sourceCode = {};
-let currentFile = 'index.html';
+// Agrupar arquivos por tipo para a navegação por abas
+const fileGroups = {
+    'HTML': Object.keys(files).filter(file => file.endsWith('.html')),
+    'JavaScript': Object.keys(files).filter(file => file.endsWith('.js')),
+    'CSS': Object.keys(files).filter(file => file.endsWith('.css')),
+    'Markdown': Object.keys(files).filter(file => file.endsWith('.md')),
+    'Outros': Object.keys(files).filter(file => !file.endsWith('.html') && !file.endsWith('.js') && !file.endsWith('.css') && !file.endsWith('.md'))
+};
 
-// Inicializa a página
-document.addEventListener('DOMContentLoaded', async () => {
-    // Inicializa ícones Lucide
-    if (typeof lucide !== 'undefined' && lucide) {
-        lucide.createIcons();
-    }
-    
-    // Adiciona suporte para highlight de JSON e Markdown
-    if (hljs) {
-        // Carrega o módulo de JSON se ainda não estiver carregado
-        if (!hljs.getLanguage('json')) {
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/json.min.js';
-            document.head.appendChild(script);
-        }
-        
-        // Carrega o módulo de Markdown se ainda não estiver carregado
-        if (!hljs.getLanguage('markdown')) {
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/markdown.min.js';
-            document.head.appendChild(script);
-        }
-    }
-    
-    // Gera as abas para navegação de arquivos
-    generateFileTabs();
-    
-    // Configura os event listeners para as abas
-    setupTabButtons();
-    
-    // Configura os botões de ação
-    setupActionButtons();
-    
-    // Carrega o código-fonte de todos os arquivos
-    await fetchAllSourceCode();
-    
-    // Exibe o código do primeiro arquivo
-    displayFileCode(currentFile);
-});
+// Mapeamento de extensões para linguagens highlight.js
+const extensionToLanguage = {
+    '.html': 'html',
+    '.css': 'css',
+    '.js': 'javascript',
+    '.md': 'markdown',
+    '.json': 'json'
+};
 
-// Gera as abas para navegação de arquivos
-function generateFileTabs() {
-    const tabsContainer = document.getElementById('file-tabs');
-    tabsContainer.innerHTML = '';
-    
-    // Agrupa os arquivos por diretório
-    const groups = {};
-    
-    for (const filePath in fileStructure) {
-        const parts = filePath.split('/');
-        const dir = parts.length > 1 ? parts[0] : 'root';
-        
-        if (!groups[dir]) {
-            groups[dir] = [];
-        }
-        
-        groups[dir].push({
-            path: filePath,
-            name: parts[parts.length - 1]
-        });
+// Funções utilitárias
+function getFileExtension(filename) {
+    return filename.substring(filename.lastIndexOf('.')) || '';
+}
+
+function getLanguageForFile(filename) {
+    const extension = getFileExtension(filename);
+    return extensionToLanguage[extension] || 'plaintext';
+}
+
+function getFileIcon(filename) {
+    const extension = getFileExtension(filename);
+    switch (extension) {
+        case '.html':
+            return '<i class="fa-brands fa-html5 text-orange-500"></i>';
+        case '.css':
+            return '<i class="fa-brands fa-css3-alt text-blue-500"></i>';
+        case '.js':
+            return '<i class="fa-brands fa-js-square text-yellow-500"></i>';
+        case '.md':
+            return '<i class="fa-brands fa-markdown text-slate-700"></i>';
+        case '.json':
+            return '<i class="fa-solid fa-brackets-curly text-purple-500"></i>';
+        case '.png':
+        case '.jpg':
+        case '.jpeg':
+        case '.gif':
+            return '<i class="fa-regular fa-image text-green-500"></i>';
+        default:
+            return '<i class="fa-regular fa-file text-slate-500"></i>';
     }
-    
-    // Adiciona os arquivos da raiz primeiro
-    if (groups['root']) {
-        groups['root'].forEach(file => {
-            tabsContainer.appendChild(createTabButton(file.path, file.name, file.path === currentFile));
-        });
-    }
-    
-    // Adiciona os arquivos agrupados por diretório
-    for (const dir in groups) {
-        if (dir !== 'root') {
-            // Adiciona um separador entre os grupos
-            const separator = document.createElement('div');
-            separator.className = 'text-xs text-slate-400 px-2 py-1 mx-1 border-l border-slate-200';
-            separator.textContent = dir;
-            tabsContainer.appendChild(separator);
+}
+
+// Carregar arquivo 
+async function loadFile(filePath) {
+    try {
+        // Atualizar o caminho do arquivo atual
+        document.getElementById('current-file').textContent = filePath;
+        
+        // Obter o tipo de arquivo para highlight.js
+        const language = getLanguageForFile(filePath);
+        
+        // Referência ao elemento de display
+        const codeDisplay = document.getElementById('code-display');
+        
+        // Definir linguagem para highlight.js
+        codeDisplay.className = `language-${language}`;
+        
+        if (files[filePath].type === 'image') {
+            // Para imagens, mostrar preview
+            codeDisplay.innerHTML = `<div class="flex items-center justify-center p-4">
+                <img src="${files[filePath].path}" alt="${filePath}" class="max-w-full max-h-96">
+                <p class="mt-4 text-center text-slate-500">Arquivo de imagem: ${filePath}</p>
+            </div>`;
             
-            // Adiciona os arquivos do diretório
-            groups[dir].forEach(file => {
-                tabsContainer.appendChild(createTabButton(file.path, file.name, file.path === currentFile));
-            });
-        }
-    }
-}
-
-// Cria um botão de aba para um arquivo
-function createTabButton(filePath, fileName, isActive) {
-    const button = document.createElement('button');
-    button.className = `tab-button px-3 py-1.5 text-sm font-medium ${isActive ? 'active text-slate-800' : 'text-slate-600'} hover:bg-slate-100 rounded-md`;
-    button.dataset.file = filePath;
-    button.textContent = fileName;
-    return button;
-}
-
-// Configura os event listeners para as abas
-function setupTabButtons() {
-    document.getElementById('file-tabs').addEventListener('click', (e) => {
-        const button = e.target.closest('.tab-button');
-        if (!button) return;
-        
-        // Remove a classe "active" de todos os botões
-        document.querySelectorAll('.tab-button').forEach(btn => {
-            btn.classList.remove('active');
-            btn.classList.add('text-slate-600');
-            btn.classList.remove('text-slate-800');
-        });
-        
-        // Adiciona a classe "active" ao botão clicado
-        button.classList.add('active');
-        button.classList.remove('text-slate-600');
-        button.classList.add('text-slate-800');
-        
-        // Atualiza o arquivo atual e exibe seu código
-        currentFile = button.dataset.file;
-        displayFileCode(currentFile);
-    });
-}
-
-// Configura os botões de ação
-function setupActionButtons() {
-    // Botão para copiar o arquivo atual
-    document.getElementById('copy-file-btn').addEventListener('click', () => {
-        copyToClipboard(sourceCode[currentFile]);
-        showToast('Código copiado!', 'success');
-    });
-    
-    // Botão para baixar o arquivo atual
-    document.getElementById('download-file-btn').addEventListener('click', () => {
-        downloadSingleFile(currentFile, sourceCode[currentFile]);
-    });
-    
-    // Botão para baixar todos os arquivos
-    document.getElementById('download-all-btn').addEventListener('click', () => {
-        downloadAllFiles();
-    });
-    
-    // Botão para copiar todos os arquivos
-    document.getElementById('copy-all-btn').addEventListener('click', () => {
-        const allCode = Object.entries(sourceCode).map(([filename, code]) => {
-            return `/* ========== ${filename} ========== */\n\n${code}\n\n`;
-        }).join('\n');
-        
-        copyToClipboard(allCode);
-        showToast('Todos os códigos copiados!', 'success');
-    });
-}
-
-// Busca o código-fonte de todos os arquivos
-async function fetchAllSourceCode() {
-    const files = Object.keys(fileStructure);
-    
-    // Exibe um indicador de carregamento
-    document.getElementById('code-display').textContent = 'Carregando arquivos...';
-    
-    try {
-        // Busca cada arquivo em paralelo
-        const promises = files.map(file => fetchFileContent(file));
-        await Promise.all(promises);
-    } catch (error) {
-        console.error('Erro ao carregar arquivos:', error);
-        document.getElementById('code-display').textContent = 'Erro ao carregar os arquivos.';
-        showToast('Erro ao carregar os arquivos.', 'error');
-    }
-}
-
-// Busca o conteúdo de um arquivo
-async function fetchFileContent(filename) {
-    try {
-        const fileInfo = fileStructure[filename];
-        if (!fileInfo) {
-            throw new Error(`Arquivo ${filename} não encontrado na estrutura`);
+            // Não aplicar highlight.js
+            return;
         }
         
-        const response = await fetch(fileInfo.path);
+        // Carregar o conteúdo do arquivo
+        const response = await fetch(files[filePath].path);
         if (!response.ok) {
-            throw new Error(`Erro ${response.status}: ${response.statusText}`);
+            throw new Error(`Erro HTTP! Status: ${response.status}`);
         }
         
-        const code = await response.text();
-        sourceCode[filename] = code;
-        return code;
-    } catch (error) {
-        console.error(`Erro ao carregar ${filename}:`, error);
-        sourceCode[filename] = `// Erro ao carregar ${filename}\n// ${error.message}`;
-    }
-}
-
-// Exibe o código de um arquivo
-function displayFileCode(filename) {
-    const codeDisplay = document.getElementById('code-display');
-    const currentFileElement = document.getElementById('current-file');
-    
-    // Atualiza o nome do arquivo atual
-    currentFileElement.textContent = filename;
-    
-    // Atualiza a linguagem para o highlight
-    const fileInfo = fileStructure[filename];
-    const fileType = fileInfo ? fileInfo.type : 'plaintext';
-    
-    // Define a linguagem correta para o highlight
-    let language = fileType;
-    if (fileType === 'json') {
-        language = 'javascript'; // highlight.js usa javascript para JSON
-    } else if (fileType === 'markdown') {
-        language = 'markdown';
-    }
-    
-    codeDisplay.className = `language-${language}`;
-    
-    // Exibe o código
-    codeDisplay.textContent = sourceCode[filename] || `// Carregando ${filename}...`;
-    
-    // Aplica o highlight
-    if (hljs && hljs.highlightElement) {
+        let content = await response.text();
+        
+        // Escapar caracteres HTML para exibição segura
+        content = content
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+        
+        // Definir o conteúdo
+        codeDisplay.textContent = content;
+        
+        // Aplicar highlight
         hljs.highlightElement(codeDisplay);
+        
+    } catch (error) {
+        console.error('Erro ao carregar arquivo:', error);
+        document.getElementById('code-display').textContent = `// Erro ao carregar o arquivo: ${filePath}\n// ${error.message}`;
     }
 }
 
-// Copia texto para a área de transferência
-function copyToClipboard(text) {
-    // Método moderno
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text)
-            .catch(err => {
-                console.error('Erro ao copiar texto:', err);
-                fallbackCopyToClipboard(text);
+// Criar as abas de navegação
+function createFileTabs() {
+    const tabsContainer = document.getElementById('file-tabs');
+    if (!tabsContainer) return;
+    
+    let tabsHTML = '';
+    
+    // Criar abas para cada grupo de arquivos
+    Object.keys(fileGroups).forEach(group => {
+        if (fileGroups[group].length > 0) {
+            tabsHTML += `
+                <div class="relative inline-block">
+                    <button class="file-group-tab px-4 py-1.5 text-sm font-medium border-b-2 border-transparent hover:border-indigo-500 hover:text-indigo-600 transition-colors">
+                        ${group}
+                    </button>
+                    <div class="file-group-dropdown absolute left-0 top-full mt-1 w-64 bg-white shadow-lg rounded-lg border border-gray-200 p-2 hidden z-20">
+                        <div class="max-h-80 overflow-y-auto">
+                            ${fileGroups[group].sort().map(file => `
+                                <button class="file-item w-full text-left px-2 py-1.5 text-sm rounded hover:bg-gray-100 flex items-center gap-2" data-file="${file}">
+                                    ${getFileIcon(file)}
+                                    <span class="truncate">${file}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    });
+    
+    tabsContainer.innerHTML = tabsHTML;
+    
+    // Adicionar event listeners
+    document.querySelectorAll('.file-group-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Fechar todos os dropdowns abertos
+            document.querySelectorAll('.file-group-dropdown').forEach(dropdown => {
+                dropdown.classList.add('hidden');
             });
-    } else {
-        fallbackCopyToClipboard(text);
-    }
+            
+            // Abrir o dropdown atual
+            this.nextElementSibling.classList.remove('hidden');
+            
+            // Destacar a aba ativa
+            document.querySelectorAll('.file-group-tab').forEach(t => {
+                t.classList.remove('border-indigo-500', 'text-indigo-600');
+                t.classList.add('border-transparent');
+            });
+            this.classList.add('border-indigo-500', 'text-indigo-600');
+        });
+    });
+    
+    // Fechar dropdown ao clicar fora
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('.file-group-tab') && !event.target.closest('.file-group-dropdown')) {
+            document.querySelectorAll('.file-group-dropdown').forEach(dropdown => {
+                dropdown.classList.add('hidden');
+            });
+        }
+    });
+    
+    // Adicionar listeners para os itens de arquivo
+    document.querySelectorAll('.file-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const filePath = this.getAttribute('data-file');
+            loadFile(filePath);
+            
+            // Fechar o dropdown
+            this.closest('.file-group-dropdown').classList.add('hidden');
+        });
+    });
 }
 
-// Método alternativo para copiar texto
-function fallbackCopyToClipboard(text) {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.style.position = 'fixed';
-    document.body.appendChild(textarea);
-    textarea.select();
-    
+// Função para baixar todos os arquivos
+async function downloadAllFiles() {
     try {
-        document.execCommand('copy');
-    } catch (err) {
-        console.error('Erro ao copiar texto:', err);
-        showToast('Erro ao copiar o texto.', 'error');
+        const downloadBtn = document.getElementById('download-all-btn');
+        const originalText = downloadBtn.innerHTML;
+        
+        // Alterar o texto do botão
+        downloadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin h-4 w-4 sm:h-5 sm:w-5 mr-2"></i><span>Preparando...</span>';
+        downloadBtn.disabled = true;
+        
+        // Criar o objeto JSZip
+        const zip = new JSZip();
+        
+        // Adicionar todos os arquivos ao ZIP
+        for (const [filePath, fileInfo] of Object.entries(files)) {
+            try {
+                // Carregar o conteúdo do arquivo
+                const response = await fetch(fileInfo.path);
+                
+                if (!response.ok) {
+                    console.warn(`Não foi possível carregar o arquivo: ${filePath}`);
+                    continue;
+                }
+                
+                // Adicionar ao ZIP (como blob para imagens, como texto para outros)
+                if (fileInfo.type === 'image') {
+                    const blob = await response.blob();
+                    zip.file(filePath, blob);
+                } else {
+                    const text = await response.text();
+                    zip.file(filePath, text);
+                }
+                
+            } catch (error) {
+                console.error(`Erro ao processar arquivo ${filePath}:`, error);
+            }
+        }
+        
+        // Gerar o ZIP
+        const content = await zip.generateAsync({ type: 'blob' });
+        
+        // Criar link de download
+        const downloadLink = document.createElement('a');
+        downloadLink.href = URL.createObjectURL(content);
+        downloadLink.download = 'construktor-codigo-fonte.zip';
+        downloadLink.click();
+        
+        // Limpar URL após download
+        setTimeout(() => {
+            URL.revokeObjectURL(downloadLink.href);
+        }, 100);
+        
+        // Restaurar o texto do botão
+        downloadBtn.innerHTML = originalText;
+        downloadBtn.disabled = false;
+        
+    } catch (error) {
+        console.error('Erro ao criar o ZIP:', error);
+        document.getElementById('download-all-btn').innerHTML = '<i class="fa-solid fa-download h-4 w-4 sm:h-5 sm:w-5 mr-2"></i><span>Baixar Sistema</span>';
+        document.getElementById('download-all-btn').disabled = false;
+        
+        // Mostrar mensagem de erro
+        alert('Ocorreu um erro ao gerar o arquivo ZIP. Consulte o console para detalhes.');
     }
-    
-    document.body.removeChild(textarea);
 }
 
-// Baixa um único arquivo
-function downloadSingleFile(filename, content) {
-    // Extrai apenas o nome do arquivo sem o caminho
-    const parts = filename.split('/');
-    const simpleName = parts[parts.length - 1];
+// Função para copiar o conteúdo do arquivo atual
+async function copyFileContent() {
+    const currentFile = document.getElementById('current-file').textContent;
     
-    const blob = new Blob([content], { type: 'text/plain' });
-    saveAs(blob, simpleName);
-}
-
-// Baixa todos os arquivos como um ZIP
-function downloadAllFiles() {
-    if (!JSZip) {
-        showToast('Biblioteca JSZip não encontrada. Não é possível criar o ZIP.', 'error');
+    if (!currentFile || !files[currentFile]) {
         return;
     }
     
-    const zip = new JSZip();
-    
-    // Adiciona diretórios ao ZIP
-    zip.folder('css');
-    zip.folder('js');
-    zip.folder('js/user');
-    zip.folder('pages');
-    
-    // Adiciona cada arquivo ao ZIP respeitando a estrutura de diretórios
-    Object.entries(sourceCode).forEach(([filename, content]) => {
-        const parts = filename.split('/');
-        
-        if (parts.length === 1) {
-            // Arquivo na raiz
-            zip.file(filename, content);
-        } else {
-            // Arquivo em subdiretório
-            zip.file(filename, content);
+    try {
+        // Se for uma imagem, não podemos copiar
+        if (files[currentFile].type === 'image') {
+            alert('Não é possível copiar arquivos de imagem.');
+            return;
         }
-    });
-    
-    // Adiciona o README com a versão atual
-    const versionDate = new Date().toLocaleDateString('pt-BR');
-    const versionTime = new Date().toLocaleTimeString('pt-BR');
-    const readmeContent = `# Construktor - Sistema de Construção Visual de ERP/CRM
-
-**VERSÃO CORRIGIDA E ATUALIZADA**  
-Exportada em: ${versionDate} às ${versionTime}
-
-## ✅ Correções Aplicadas Nesta Versão
-
-### Sistema de Modo Escuro Implementado
-- **🌙 Modo Escuro**: Sistema completo de alternância entre modo claro e escuro
-- **☀️ Seletores de Tema**: Sol/lua na página de login e menu do usuário
-- **💾 Persistência**: Preferência salva automaticamente no localStorage
-- **🎨 Design Consistente**: Cores otimizadas para melhor experiência visual
-
-### Melhorias na Interface
-- **Cores Corrigidas**: Área de entidades nos módulos com cores adequadas ao modo escuro
-- **Título Login**: Nome "Construktor" agora aparece corretamente em branco no modo escuro
-- **⚡ Tecla Enter**: Formulários de login e registro respondem à tecla Enter
-- **📱 Responsividade**: Interface otimizada para diferentes tamanhos de tela
-
-### Limpeza de Código
-- **🧹 Scripts Removidos**: Scripts youware-lib removidos de todos os arquivos HTML
-- **📁 Arquivos Atualizados**: Todos os arquivos incluídos no sistema de download
-- **🔧 Modo Escuro**: Sistema dark-mode.js incluído na estrutura
-
-## Descrição
-O Construktor é um sistema visual para construção de ERP/CRM, permitindo criar e gerenciar módulos, entidades e campos de formulários.
-
-## Funcionalidades Principais
-- ✨ Criação de módulos personalizados
-- 🎯 Arrastar e soltar entidades nos módulos
-- ⚙️ Configuração avançada de campos de formulário
-- 👥 Sistema completo de convites e permissões
-- 🔄 Áreas de trabalho compartilhadas
-- 🛡️ Controle granular de acesso (Admin/Editor/Leitor)
-- 🌙 Modo escuro com alternância sol/lua
-- ⚡ Suporte à tecla Enter em formulários
-
-## Estrutura de Arquivos
-### Arquivos Principais
-- \`index.html\` - Página principal da aplicação (CORRIGIDA)
-- \`js/main.js\` - Arquivo JavaScript principal
-- \`js/user/invitations.js\` - Sistema de convites (TOTALMENTE REESCRITO)
-- \`js/config.js\` - Configurações da aplicação
-
-### Sistema de Temas
-- \`js/dark-mode.js\` - Gerenciador de modo escuro/claro (NOVO)
-
-### Configuração e Documentação
-- \`firebase_rules.json\` - Regras de segurança do Firebase
-- \`database-rules-guide.md\` - Guia para configuração das regras
-- \`YOUWARE.md\` - Documentação técnica completa
-
-## 🔧 Tecnologias Utilizadas
-- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **Styles**: Tailwind CSS
-- **Icons**: Lucide Icons (com sistema otimizado)
-- **Backend**: Firebase (Auth, Realtime Database, Storage)
-- **UI**: SweetAlert2, Sortable.js
-
-## 📝 Notas Importantes
-Esta versão inclui todas as correções e melhorias para:
-1. Sistema completo de modo escuro com seletores sol/lua
-2. Cores otimizadas para melhor experiência visual
-3. Funcionalidade Enter em todos os formulários de autenticação
-4. Código limpo sem dependências externas desnecessárias
-
-Para mais informações técnicas, consulte \`YOUWARE.md\`.
-`;
-    zip.file('README.md', readmeContent);
-    
-    // Gera o arquivo ZIP com a data atual no nome
-    const today = new Date();
-    const dateStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
-    
-    zip.generateAsync({ type: 'blob' })
-        .then(function(content) {
-            // Baixa o arquivo ZIP com a data no nome
-            saveAs(content, `construktor_${dateStr}.zip`);
-            showToast('Download iniciado! Todos os arquivos do sistema estão sendo baixados.', 'success');
-        })
-        .catch(function(error) {
-            console.error('Erro ao gerar ZIP:', error);
-            showToast('Erro ao gerar o arquivo ZIP.', 'error');
-        });
-}
-
-// Exibe um toast de notificação
-function showToast(message, icon) {
-    if (typeof Swal !== 'undefined') {
-        const Toast = Swal.mixin({
-            toast: true,
-            position: 'bottom-end',
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true,
-            customClass: {
-                popup: 'shadow-xl rounded-xl'
-            }
-        });
         
-        Toast.fire({
-            icon: icon,
-            title: message
-        });
-    } else {
-        alert(message);
+        // Carregar o conteúdo do arquivo
+        const response = await fetch(files[currentFile].path);
+        if (!response.ok) {
+            throw new Error(`Erro HTTP! Status: ${response.status}`);
+        }
+        
+        const content = await response.text();
+        
+        // Copiar para a área de transferência
+        await navigator.clipboard.writeText(content);
+        
+        // Mostrar confirmação
+        const copyBtn = document.getElementById('copy-file-btn');
+        const originalText = copyBtn.innerHTML;
+        
+        copyBtn.innerHTML = '<i class="fa-solid fa-check h-3.5 w-3.5"></i><span>Copiado!</span>';
+        copyBtn.disabled = true;
+        
+        setTimeout(() => {
+            copyBtn.innerHTML = originalText;
+            copyBtn.disabled = false;
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Erro ao copiar arquivo:', error);
+        alert('Não foi possível copiar o arquivo. Consulte o console para detalhes.');
     }
 }
+
+// Função para baixar o arquivo atual
+async function downloadCurrentFile() {
+    const currentFile = document.getElementById('current-file').textContent;
+    
+    if (!currentFile || !files[currentFile]) {
+        return;
+    }
+    
+    try {
+        // Carregar o conteúdo do arquivo
+        const response = await fetch(files[currentFile].path);
+        if (!response.ok) {
+            throw new Error(`Erro HTTP! Status: ${response.status}`);
+        }
+        
+        // Para imagens, baixar como blob
+        if (files[currentFile].type === 'image') {
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = currentFile.split('/').pop();
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+            }, 100);
+            
+        } else {
+            // Para outros arquivos, baixar como texto
+            const content = await response.text();
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = currentFile.split('/').pop();
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+            }, 100);
+        }
+        
+    } catch (error) {
+        console.error('Erro ao baixar arquivo:', error);
+        alert('Não foi possível baixar o arquivo. Consulte o console para detalhes.');
+    }
+}
+
+// Inicialização quando a página carrega
+document.addEventListener('DOMContentLoaded', function() {
+    // Criar as abas de navegação
+    createFileTabs();
+    
+    // Carregar o arquivo index.html por padrão
+    loadFile('index.html');
+    
+    // Event listeners para os botões
+    document.getElementById('download-all-btn')?.addEventListener('click', downloadAllFiles);
+    document.getElementById('copy-file-btn')?.addEventListener('click', copyFileContent);
+    document.getElementById('download-file-btn')?.addEventListener('click', downloadCurrentFile);
+    
+    // Event listener para o botão de copiar todos (placeholder)
+    document.getElementById('copy-all-btn')?.addEventListener('click', function() {
+        alert('Função em implementação. Por favor, use o botão de download.');
+    });
+});

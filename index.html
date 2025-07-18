@@ -8,16 +8,7 @@
     <link rel="icon" href="imagem/logo.png" type="image/png">
     <!-- Dependências Externas -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script>
-        // Configuração do Tailwind para modo escuro
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {}
-            }
-        }
-    </script>
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
@@ -180,14 +171,40 @@
                 <button id="mobile-menu-toggle" class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 sm:hidden">
                     <i class="fa-solid fa-bars w-6 h-6"></i>
                 </button>
-                <div class="relative">
-                    <button id="user-menu-button" class="flex items-center gap-2 sm:gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-100">
+                <div class="flex items-center gap-2 sm:gap-3 p-2 relative">
+                    <button id="construktor-menu-toggle" class="flex items-center gap-2 sm:gap-3 p-2 -ml-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <img src="imagem/logo.png" alt="Construktor Logo" class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-md">
-                        <h1 class="text-xl sm:text-2xl font-bold text-slate-800">Construktor</h1>
-                        <i class="fa-solid fa-chevron-down h-4 w-4 text-slate-400"></i>
+                        <h1 class="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-200">Construktor</h1>
+                        <i id="construktor-toggle-icon" class="fa-solid fa-chevron-down h-4 w-4 text-slate-500 dark:text-slate-400 ml-1"></i>
                     </button>
-
-                    <div id="user-menu-dropdown" class="absolute top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-slate-200 p-2 z-50 hidden">
+                    <div id="construktor-menu-dropdown" class="absolute left-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-slate-200 p-2 z-50 hidden dark:bg-slate-800 dark:border-slate-700">
+                        <a href="index.html" id="nav-module-builder" class="flex items-center gap-3 px-3 py-2 rounded-md text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-slate-300">
+                            <i class="fa-solid fa-cubes h-4 w-4"></i>
+                            <span>Modelador de Módulos</span>
+                        </a>
+                        <a href="pages/flow-designer.html" id="nav-flow-designer" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600 dark:hover:bg-slate-700 dark:text-slate-300">
+                            <i class="fa-solid fa-diagram-flow h-4 w-4"></i>
+                            <span>Designer de Fluxos</span>
+                        </a>
+                        <a href="#" id="nav-page-builder" class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-100 text-slate-600 dark:hover:bg-slate-700 dark:text-slate-300">
+                            <i class="fa-solid fa-file-lines h-4 w-4"></i>
+                            <span>Construtor de Páginas</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-4">
+                <button id="help-button" class="text-slate-600 hover:text-indigo-600 transition-colors flex items-center gap-1">
+                    <i class="fa-solid fa-circle-question h-5 w-5"></i>
+                    <span class="text-sm font-medium hidden sm:inline">Ajuda</span>
+                </button>
+                <!-- Botões removidos, mas mantendo link para pages/code-view.html para funcionalidade -->
+                <!-- Botão de logout removido pois agora está no menu do usuário -->
+                <div class="relative">
+                    <button id="settings-menu-button" class="text-slate-600 hover:text-indigo-600 transition-colors p-2 rounded-lg hover:bg-slate-100">
+                        <i class="fa-solid fa-gear h-5 w-5"></i>
+                    </button>
+                    <div id="user-menu-dropdown" class="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-slate-200 p-2 z-50 hidden">
                         <div class="p-2">
                             <p class="text-xs text-slate-500">Logado como</p>
                             <div class="flex items-center gap-2 mt-1">
@@ -216,24 +233,6 @@
                         </a>
                     </div>
                 </div>
-            </div>
-            <div class="flex items-center gap-2 sm:gap-4">
-                <button id="help-button" class="text-slate-600 hover:text-indigo-600 transition-colors flex items-center gap-1">
-                    <i class="fa-solid fa-circle-question h-5 w-5"></i>
-                    <span class="text-sm font-medium hidden sm:inline">Ajuda</span>
-                </button>
-                <!-- Botão Ver Código apenas visível em desktop -->
-                <a href="pages/code-view.html" target="_blank" class="hidden sm:flex bg-gradient-to-r from-green-600 to-teal-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg hover:from-green-700 hover:to-teal-700 transition-all shadow-md items-center gap-2 text-sm sm:text-base">
-                    <i class="fa-solid fa-code h-4 w-4 sm:h-5 sm:w-5"></i>
-                    <span class="font-medium">Ver Código</span>
-                </a>
-                <!-- Botão Ver Página apenas visível em desktop -->
-                <a href="pages/user-view.html" target="_blank" class="hidden sm:flex bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md items-center gap-2 text-sm sm:text-base">
-                    <i class="fa-solid fa-eye h-4 w-4 sm:h-5 sm:w-5"></i>
-                    <span class="font-medium">Ver Página</span>
-                </a>
-                <!-- Botão de logout removido pois agora está no menu do usuário -->
-                
             </div>
         </header>
 
@@ -280,15 +279,7 @@
                         
                     </div>
 
-                    <!-- Botões de ação mobile -->
-                    <div class="p-4 border-b border-slate-200 sm:hidden">
-                        <div class="flex flex-col gap-2">
-                            <a href="pages/user-view.html" target="_blank" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2.5 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md flex items-center justify-center gap-2 text-sm">
-                                <i class="fa-solid fa-eye h-4 w-4"></i>
-                                <span class="font-medium">Ver Página</span>
-                            </a>
-                        </div>
-                    </div>
+                    <!-- Botões de ação mobile removidos -->
 
                     <div id="entity-library">
                         <div class="flex items-center justify-between mb-3">
@@ -1526,5 +1517,5 @@
     <script src="js/dark-mode.js"></script>
     <!-- Script de Melhorias de UI -->
     <script src="js/ui-enhancements.js"></script>
-</body>
+<script src="https://lib.youware.com/youware-lib.1747145198.js" id="yourware-lib"></script></body>
 </html>
