@@ -539,64 +539,65 @@ class FlowDesigner {
     
     setupModuleDrag(moduleElement) {
         let isDragging = false;
-        let dragStart = { x: 0, y: 0 };
-        let moduleStart = { x: 0, y: 0 };
-        
+        let offset = { x: 0, y: 0 };
+
         moduleElement.addEventListener('mousedown', (e) => {
-            // Não iniciar drag se clicar no botão de remover
             if (e.target.closest('.remove-module-btn')) {
                 return;
             }
-            
+
             if (e.button === 0) { // Botão esquerdo
-                e.stopPropagation(); // Impedir pan do canvas
-                
+                e.stopPropagation();
+
                 isDragging = true;
-                dragStart.x = e.clientX;
-                dragStart.y = e.clientY;
-                
+
                 const rect = moduleElement.getBoundingClientRect();
                 const canvasRect = this.flowCanvas.getBoundingClientRect();
-                
-                moduleStart.x = (rect.left - canvasRect.left - this.panX) / this.zoomLevel;
-                moduleStart.y = (rect.top - canvasRect.top - this.panY) / this.zoomLevel;
-                
+
+                const moduleX = (rect.left - canvasRect.left - this.panX) / this.zoomLevel;
+                const moduleY = (rect.top - canvasRect.top - this.panY) / this.zoomLevel;
+
+                const mouseX = (e.clientX - canvasRect.left - this.panX) / this.zoomLevel;
+                const mouseY = (e.clientY - canvasRect.top - this.panY) / this.zoomLevel;
+
+                offset.x = mouseX - moduleX;
+                offset.y = mouseY - moduleY;
+
                 moduleElement.classList.add('dragging');
-                
+
                 const handleMouseMove = (e) => {
                     if (isDragging) {
-                        const deltaX = (e.clientX - dragStart.x) / this.zoomLevel;
-                        const deltaY = (e.clientY - dragStart.y) / this.zoomLevel;
-                        
-                        const newX = moduleStart.x + deltaX;
-                        const newY = moduleStart.y + deltaY;
-                        
+                        const canvasRect = this.flowCanvas.getBoundingClientRect();
+
+                        const newMouseX = (e.clientX - canvasRect.left - this.panX) / this.zoomLevel;
+                        const newMouseY = (e.clientY - canvasRect.top - this.panY) / this.zoomLevel;
+
+                        const newX = newMouseX - offset.x;
+                        const newY = newMouseY - offset.y;
+
                         moduleElement.style.left = `${newX}px`;
                         moduleElement.style.top = `${newY}px`;
                     }
                 };
-                
+
                 const handleMouseUp = () => {
                     if (isDragging) {
                         isDragging = false;
                         moduleElement.classList.remove('dragging');
-                        
-                        // Atualizar posição nos fluxos
+
                         const moduleId = moduleElement.getAttribute('data-module-id');
                         const flow = this.flows.find(f => f.moduleId === moduleId);
                         if (flow) {
                             flow.x = parseFloat(moduleElement.style.left);
                             flow.y = parseFloat(moduleElement.style.top);
-                            
-                            // Salvar nova posição no Firebase
                             this.saveFlowPosition(flow);
                         }
-                        
+
                         document.removeEventListener('mousemove', handleMouseMove);
                         document.removeEventListener('mouseup', handleMouseUp);
                     }
                 };
-                
+
                 document.addEventListener('mousemove', handleMouseMove);
                 document.addEventListener('mouseup', handleMouseUp);
             }
