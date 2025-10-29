@@ -595,7 +595,7 @@ class FlowDesigner {
         };
 
         moduleElement.addEventListener('mousedown', (e) => {
-            if (e.target.closest('.remove-module-btn')) {
+            if (e.target.closest('.remove-module-btn') || e.target.classList.contains('connection-point')) {
                 return;
             }
 
@@ -604,11 +604,9 @@ class FlowDesigner {
                 isDragging = true;
                 latestMouseEvent = e;
 
-                const rect = moduleElement.getBoundingClientRect();
                 const canvasRect = this.flowCanvas.getBoundingClientRect();
-
-                const moduleX = (rect.left - canvasRect.left - this.panX) / this.zoomLevel;
-                const moduleY = (rect.top - canvasRect.top - this.panY) / this.zoomLevel;
+                const moduleX = parseFloat(moduleElement.style.left) || 0;
+                const moduleY = parseFloat(moduleElement.style.top) || 0;
 
                 const mouseX = (e.clientX - canvasRect.left - this.panX) / this.zoomLevel;
                 const mouseY = (e.clientY - canvasRect.top - this.panY) / this.zoomLevel;
