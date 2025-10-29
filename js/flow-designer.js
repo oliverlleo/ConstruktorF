@@ -954,7 +954,6 @@ class FlowDesigner {
                         const endY = (e.clientY - canvasRect.top - this.panY) / this.zoomLevel;
 
                         const moduleX = parseFloat(endTarget.style.left);
-                        const moduleX = parseFloat(endTarget.style.left);
                         const moduleY = parseFloat(endTarget.style.top);
                         const moduleWidth = endRect.width / this.zoomLevel;
                         const moduleHeight = endRect.height / this.zoomLevel;
