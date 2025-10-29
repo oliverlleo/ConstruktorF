@@ -540,6 +540,26 @@ class FlowDesigner {
     setupModuleDrag(moduleElement) {
         let isDragging = false;
         let offset = { x: 0, y: 0 };
+        let animationFrameId = null;
+        let latestMouseEvent = null;
+
+        const updatePosition = () => {
+            if (!latestMouseEvent || !isDragging) {
+                return;
+            }
+
+            const canvasRect = this.flowCanvas.getBoundingClientRect();
+            const newMouseX = (latestMouseEvent.clientX - canvasRect.left - this.panX) / this.zoomLevel;
+            const newMouseY = (latestMouseEvent.clientY - canvasRect.top - this.panY) / this.zoomLevel;
+
+            const newX = newMouseX - offset.x;
+            const newY = newMouseY - offset.y;
+
+            moduleElement.style.left = `${newX}px`;
+            moduleElement.style.top = `${newY}px`;
+
+            animationFrameId = requestAnimationFrame(updatePosition);
+        };
 
         moduleElement.addEventListener('mousedown', (e) => {
             if (e.target.closest('.remove-module-btn')) {
@@ -548,8 +568,8 @@ class FlowDesigner {
 
             if (e.button === 0) { // Botão esquerdo
                 e.stopPropagation();
-
                 isDragging = true;
+                latestMouseEvent = e;
 
                 const rect = moduleElement.getBoundingClientRect();
                 const canvasRect = this.flowCanvas.getBoundingClientRect();
@@ -565,24 +585,21 @@ class FlowDesigner {
 
                 moduleElement.classList.add('dragging');
 
+                animationFrameId = requestAnimationFrame(updatePosition);
+
                 const handleMouseMove = (e) => {
                     if (isDragging) {
-                        const canvasRect = this.flowCanvas.getBoundingClientRect();
-
-                        const newMouseX = (e.clientX - canvasRect.left - this.panX) / this.zoomLevel;
-                        const newMouseY = (e.clientY - canvasRect.top - this.panY) / this.zoomLevel;
-
-                        const newX = newMouseX - offset.x;
-                        const newY = newMouseY - offset.y;
-
-                        moduleElement.style.left = `${newX}px`;
-                        moduleElement.style.top = `${newY}px`;
+                        latestMouseEvent = e;
                     }
                 };
 
                 const handleMouseUp = () => {
                     if (isDragging) {
                         isDragging = false;
+                        cancelAnimationFrame(animationFrameId);
+                        animationFrameId = null;
+                        latestMouseEvent = null;
+
                         moduleElement.classList.remove('dragging');
 
                         const moduleId = moduleElement.getAttribute('data-module-id');
