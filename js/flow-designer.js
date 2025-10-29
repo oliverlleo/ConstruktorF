@@ -61,6 +61,8 @@ class FlowDesigner {
         
         // Configurar eventos
         this.setupEventListeners();
+
+        this.setupConnectionDrawing();
         
         // Carregar workspaces
         await this.loadWorkspaces();
@@ -297,6 +299,7 @@ class FlowDesigner {
         const gridSize = 20 * this.zoomLevel;
         this.flowCanvas.style.backgroundSize = `${gridSize}px ${gridSize}px`;
         this.flowCanvas.style.backgroundPosition = `${this.panX}px ${this.panY}px`;
+        this.redrawConnections();
     }
     
     // ===== GERENCIAMENTO DE WORKSPACES =====
@@ -349,6 +352,7 @@ class FlowDesigner {
         this.currentWorkspace = workspaceId;
         await this.loadModules();
         await this.loadFlowPositions();
+        await this.loadConnections();
     }
     
     // ===== GERENCIAMENTO DE MÓDULOS =====
@@ -517,6 +521,8 @@ class FlowDesigner {
         
         // Configurar drag dentro do canvas
         this.setupModuleDrag(moduleElement);
+
+        this.addConnectionPoints(moduleElement)
         
         this.flowViewport.appendChild(moduleElement);
         
@@ -537,6 +543,31 @@ class FlowDesigner {
         console.log('✅ Módulo adicionado ao fluxo:', moduleData.moduleName);
     }
     
+    addConnectionPoints(moduleElement) {
+        const directions = ['top', 'right', 'bottom', 'left'];
+        directions.forEach(direction => {
+            const point = document.createElement('div');
+            point.className = 'connection-point';
+            point.setAttribute('data-direction', direction);
+
+            if (direction === 'top') {
+                point.style.top = '0px';
+                point.style.left = '50%';
+            } else if (direction === 'right') {
+                point.style.top = '50%';
+                point.style.left = '100%';
+            } else if (direction === 'bottom') {
+                point.style.top = '100%';
+                point.style.left = '50%';
+            } else if (direction === 'left') {
+                point.style.top = '50%';
+                point.style.left = '0px';
+            }
+
+            moduleElement.appendChild(point);
+        });
+    }
+
     setupModuleDrag(moduleElement) {
         let isDragging = false;
         let offset = { x: 0, y: 0 };
@@ -557,6 +588,8 @@ class FlowDesigner {
 
             moduleElement.style.left = `${newX}px`;
             moduleElement.style.top = `${newY}px`;
+
+            this.redrawConnections();
 
             animationFrameId = requestAnimationFrame(updatePosition);
         };
@@ -740,6 +773,8 @@ class FlowDesigner {
         // Configurar drag dentro do canvas
         this.setupModuleDrag(moduleElement);
         
+        this.addConnectionPoints(moduleElement)
+
         this.flowViewport.appendChild(moduleElement);
         
         // Adicionar aos fluxos em memória
@@ -765,7 +800,192 @@ class FlowDesigner {
         }
     }
     
+    async saveConnection(connection) {
+        if (!this.currentWorkspace || !this.currentUser) return;
+
+        try {
+            const connPath = `users/${this.currentUser.uid}/workspaces/${this.currentWorkspace}/connections`;
+            const docRef = await db.collection(connPath).add({
+                ...connection,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+            console.log('🔗 Conexão salva:', connection);
+            // Adicionar a nova conexão ao estado local e redesenhar
+            this.connections.push({ id: docRef.id, ...connection });
+            this.redrawConnections();
+        } catch (error) {
+            console.error('❌ Erro ao salvar conexão:', error);
+        }
+    }
+
+    async loadConnections() {
+        if (!this.currentWorkspace || !this.currentUser) return;
+        this.connections = [];
+        this.clearConnections();
+
+        try {
+            const connPath = `users/${this.currentUser.uid}/workspaces/${this.currentWorkspace}/connections`;
+            const snapshot = await db.collection(connPath).get();
+            if (!snapshot.empty) {
+                snapshot.forEach(doc => {
+                    this.connections.push({ id: doc.id, ...doc.data() });
+                });
+            }
+            this.redrawConnections();
+        } catch (error) {
+            console.error('❌ Erro ao carregar conexões:', error);
+        }
+    }
+
+    drawConnection(connection) {
+        const fromModule = this.flowViewport.querySelector(`[data-module-id="${connection.fromModule}"]`);
+        const toModule = this.flowViewport.querySelector(`[data-module-id="${connection.toModule}"]`);
+
+        if (fromModule && toModule) {
+            const getPortCoordinates = (module, direction) => {
+                    const rect = module.getBoundingClientRect();
+                    const canvasRect = this.flowCanvas.getBoundingClientRect();
+
+                    let x = (rect.left - canvasRect.left - this.panX) / this.zoomLevel;
+                    let y = (rect.top - canvasRect.top - this.panY) / this.zoomLevel;
+
+                    const width = module.offsetWidth;
+                    const height = module.offsetHeight;
+
+                    if (direction === 'top') {
+                        x += width / 2;
+                    } else if (direction === 'right') {
+                        x += width;
+                        y += height / 2;
+                    } else if (direction === 'bottom') {
+                        x += width / 2;
+                        y += height;
+                    } else if (direction === 'left') {
+                        y += height / 2;
+                    }
+                    return { x, y };
+            };
+
+            const startCoords = getPortCoordinates(fromModule, connection.fromDirection);
+            const endCoords = getPortCoordinates(toModule, connection.toDirection);
+
+            const arrowLayer = document.getElementById('arrow-layer');
+            const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            arrow.setAttribute('class', 'connection-arrow');
+            arrow.setAttribute('d', `M ${startCoords.x} ${startCoords.y} L ${endCoords.x} ${endCoords.y}`);
+            arrowLayer.appendChild(arrow);
+        }
+    }
+
+    redrawConnections() {
+        this.clearConnections();
+        if (this.connections && this.connections.length > 0) {
+            this.connections.forEach(conn => this.drawConnection(conn));
+        }
+    }
+
+    clearConnections() {
+        const arrowLayer = document.getElementById('arrow-layer');
+        // Deixar os defs, remover apenas as setas
+        while (arrowLayer.children.length > 1) {
+            arrowLayer.removeChild(arrowLayer.lastChild);
+        }
+    }
+
     // ===== SISTEMA DE DICAS =====
+    setupConnectionDrawing() {
+        this.flowCanvas.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('connection-point')) {
+                e.stopPropagation();
+
+                const startModule = e.target.closest('.flow-module');
+                const startModuleId = startModule.getAttribute('data-module-id');
+                const startDirection = e.target.getAttribute('data-direction');
+
+                const arrowLayer = document.getElementById('arrow-layer');
+                const tempArrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                tempArrow.setAttribute('class', 'connection-arrow-temporary');
+                arrowLayer.appendChild(tempArrow);
+
+                const getPortCoordinates = (module, direction) => {
+                    const rect = module.getBoundingClientRect();
+                    const canvasRect = this.flowCanvas.getBoundingClientRect();
+
+                    let x = (rect.left - canvasRect.left - this.panX) / this.zoomLevel;
+                    let y = (rect.top - canvasRect.top - this.panY) / this.zoomLevel;
+
+                    if (direction === 'top') {
+                        x += rect.width / this.zoomLevel / 2;
+                    } else if (direction === 'right') {
+                        x += rect.width / this.zoomLevel;
+                        y += rect.height / this.zoomLevel / 2;
+                    } else if (direction === 'bottom') {
+                        x += rect.width / this.zoomLevel / 2;
+                        y += rect.height / this.zoomLevel;
+                    } else if (direction === 'left') {
+                        y += rect.height / this.zoomLevel / 2;
+                    }
+                    return { x, y };
+                };
+
+                const startCoords = getPortCoordinates(startModule, startDirection);
+
+                const handleMouseMove = (e) => {
+                    const canvasRect = this.flowCanvas.getBoundingClientRect();
+                    const endX = (e.clientX - canvasRect.left - this.panX) / this.zoomLevel;
+                    const endY = (e.clientY - canvasRect.top - this.panY) / this.zoomLevel;
+
+                    tempArrow.setAttribute('d', `M ${startCoords.x} ${startCoords.y} L ${endX} ${endY}`);
+                };
+
+                const handleMouseUp = (e) => {
+                    tempArrow.remove();
+
+                    const endTarget = e.target.closest('.flow-module');
+
+                    if (endTarget && endTarget !== startModule) {
+                        const endModuleId = endTarget.getAttribute('data-module-id');
+
+                        // Encontrar o ponto de conexão mais próximo no módulo de destino
+                        const endRect = endTarget.getBoundingClientRect();
+                        const canvasRect = this.flowCanvas.getBoundingClientRect();
+                        const endX = (e.clientX - canvasRect.left - this.panX) / this.zoomLevel;
+                        const endY = (e.clientY - canvasRect.top - this.panY) / this.zoomLevel;
+
+                        const moduleX = parseFloat(endTarget.style.left);
+                        const moduleY = parseFloat(endTarget.style.top);
+                        const moduleWidth = endRect.width / this.zoomLevel;
+                        const moduleHeight = endRect.height / this.zoomLevel;
+
+                        const dx = (endX - moduleX) / moduleWidth - 0.5;
+                        const dy = (endY - moduleY) / moduleHeight - 0.5;
+
+                        let endDirection;
+                        if (Math.abs(dx) > Math.abs(dy)) {
+                            endDirection = dx > 0 ? 'right' : 'left';
+                        } else {
+                            endDirection = dy > 0 ? 'bottom' : 'top';
+                        }
+
+                        const connection = {
+                            fromModule: startModuleId,
+                            fromDirection: startDirection,
+                            toModule: endModuleId,
+                            toDirection: endDirection,
+                        };
+                        this.saveConnection(connection);
+                    }
+
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+                };
+
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+            }
+        });
+    }
+
     setupTipsSystem() {
         // Carregar estado das dicas do localStorage
         this.loadTipsState();
