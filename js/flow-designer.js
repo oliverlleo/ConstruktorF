@@ -521,8 +521,7 @@ class FlowDesigner {
         
         // Configurar drag dentro do canvas
         this.setupModuleDrag(moduleElement);
-
-        this.addConnectionPoints(moduleElement)
+        this.setupDynamicConnectionPoints(moduleElement);
         
         this.flowViewport.appendChild(moduleElement);
         
@@ -543,30 +542,6 @@ class FlowDesigner {
         console.log('✅ Módulo adicionado ao fluxo:', moduleData.moduleName);
     }
     
-    addConnectionPoints(moduleElement) {
-        const directions = ['top', 'right', 'bottom', 'left'];
-        directions.forEach(direction => {
-            const point = document.createElement('div');
-            point.className = 'connection-point';
-            point.setAttribute('data-direction', direction);
-
-            if (direction === 'top') {
-                point.style.top = '0px';
-                point.style.left = '50%';
-            } else if (direction === 'right') {
-                point.style.top = '50%';
-                point.style.left = '100%';
-            } else if (direction === 'bottom') {
-                point.style.top = '100%';
-                point.style.left = '50%';
-            } else if (direction === 'left') {
-                point.style.top = '50%';
-                point.style.left = '0px';
-            }
-
-            moduleElement.appendChild(point);
-        });
-    }
 
     setupModuleDrag(moduleElement) {
         let isDragging = false;
@@ -770,9 +745,8 @@ class FlowDesigner {
         
         // Configurar drag dentro do canvas
         this.setupModuleDrag(moduleElement);
+        this.setupDynamicConnectionPoints(moduleElement);
         
-        this.addConnectionPoints(moduleElement)
-
         this.flowViewport.appendChild(moduleElement);
         
         // Adicionar aos fluxos em memória
@@ -841,27 +815,27 @@ class FlowDesigner {
 
         if (fromModule && toModule) {
             const getPortCoordinates = (module, direction) => {
-                    const rect = module.getBoundingClientRect();
-                    const canvasRect = this.flowCanvas.getBoundingClientRect();
+                const moduleRect = module.getBoundingClientRect();
+                const canvasRect = this.flowCanvas.getBoundingClientRect();
 
-                    let x = (rect.left - canvasRect.left - this.panX) / this.zoomLevel;
-                    let y = (rect.top - canvasRect.top - this.panY) / this.zoomLevel;
+                let x = (moduleRect.left - canvasRect.left - this.panX) / this.zoomLevel;
+                let y = (moduleRect.top - canvasRect.top - this.panY) / this.zoomLevel;
 
-                    const width = module.offsetWidth;
-                    const height = module.offsetHeight;
+                const width = module.offsetWidth;
+                const height = module.offsetHeight;
 
-                    if (direction === 'top') {
-                        x += width / 2;
-                    } else if (direction === 'right') {
-                        x += width;
-                        y += height / 2;
-                    } else if (direction === 'bottom') {
-                        x += width / 2;
-                        y += height;
-                    } else if (direction === 'left') {
-                        y += height / 2;
-                    }
-                    return { x, y };
+                if (direction === 'top') {
+                    x += width / 2;
+                } else if (direction === 'right') {
+                    x += width;
+                    y += height / 2;
+                } else if (direction === 'bottom') {
+                    x += width / 2;
+                    y += height;
+                } else if (direction === 'left') {
+                    y += height / 2;
+                }
+                return { x, y };
             };
 
             const startCoords = getPortCoordinates(fromModule, connection.fromDirection);
@@ -891,6 +865,41 @@ class FlowDesigner {
     }
 
     // ===== SISTEMA DE DICAS =====
+    setupDynamicConnectionPoints(moduleElement) {
+        const point = document.createElement('div');
+        point.className = 'connection-point';
+        moduleElement.appendChild(point);
+
+        moduleElement.addEventListener('mousemove', (e) => {
+            const rect = moduleElement.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const width = moduleElement.offsetWidth;
+            const height = moduleElement.offsetHeight;
+
+            // Encontrar o ponto mais próximo na borda
+            let closest = { x: 0, y: 0, dist: Infinity, dir: '' };
+
+            // Top
+            let d = Math.abs(y - 0);
+            if (d < closest.dist) closest = { x: x, y: 0, dist: d, dir: 'top' };
+            // Bottom
+            d = Math.abs(y - height);
+            if (d < closest.dist) closest = { x: x, y: height, dist: d, dir: 'bottom' };
+            // Left
+            d = Math.abs(x - 0);
+            if (d < closest.dist) closest = { x: 0, y: y, dist: d, dir: 'left' };
+            // Right
+            d = Math.abs(x - width);
+            if (d < closest.dist) closest = { x: width, y: y, dist: d, dir: 'right' };
+
+            point.style.left = `${closest.x}px`;
+            point.style.top = `${closest.y}px`;
+            point.setAttribute('data-direction', closest.dir);
+        });
+    }
+
     setupConnectionDrawing() {
         this.flowCanvas.addEventListener('mousedown', (e) => {
             if (e.target.classList.contains('connection-point')) {
@@ -905,28 +914,25 @@ class FlowDesigner {
                 tempArrow.setAttribute('class', 'connection-arrow-temporary');
                 arrowLayer.appendChild(tempArrow);
 
-                const getPortCoordinates = (module, direction) => {
-                    const rect = module.getBoundingClientRect();
+                const getPortCoordinates = (point) => {
+                    const module = point.closest('.flow-module');
+                    const moduleRect = module.getBoundingClientRect();
                     const canvasRect = this.flowCanvas.getBoundingClientRect();
 
-                    let x = (rect.left - canvasRect.left - this.panX) / this.zoomLevel;
-                    let y = (rect.top - canvasRect.top - this.panY) / this.zoomLevel;
+                    const moduleX = (moduleRect.left - canvasRect.left - this.panX) / this.zoomLevel;
+                    const moduleY = (moduleRect.top - canvasRect.top - this.panY) / this.zoomLevel;
 
-                    if (direction === 'top') {
-                        x += rect.width / this.zoomLevel / 2;
-                    } else if (direction === 'right') {
-                        x += rect.width / this.zoomLevel;
-                        y += rect.height / this.zoomLevel / 2;
-                    } else if (direction === 'bottom') {
-                        x += rect.width / this.zoomLevel / 2;
-                        y += rect.height / this.zoomLevel;
-                    } else if (direction === 'left') {
-                        y += rect.height / this.zoomLevel / 2;
-                    }
-                    return { x, y };
+                    const pointX = parseFloat(point.style.left) || 0;
+                    const pointY = parseFloat(point.style.top) || 0;
+
+                    return {
+                        x: moduleX + pointX,
+                        y: moduleY + pointY,
+                        direction: point.getAttribute('data-direction')
+                    };
                 };
 
-                const startCoords = getPortCoordinates(startModule, startDirection);
+                const startCoords = getPortCoordinates(e.target);
 
                 const handleMouseMove = (e) => {
                     const canvasRect = this.flowCanvas.getBoundingClientRect();
