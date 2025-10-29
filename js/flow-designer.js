@@ -815,11 +815,8 @@ class FlowDesigner {
 
         if (fromModule && toModule) {
             const getPortCoordinates = (module, direction) => {
-                const moduleRect = module.getBoundingClientRect();
-                const canvasRect = this.flowCanvas.getBoundingClientRect();
-
-                let x = (moduleRect.left - canvasRect.left - this.panX) / this.zoomLevel;
-                let y = (moduleRect.top - canvasRect.top - this.panY) / this.zoomLevel;
+                let x = parseFloat(module.style.left);
+                let y = parseFloat(module.style.top);
 
                 const width = module.offsetWidth;
                 const height = module.offsetHeight;
