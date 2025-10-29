@@ -957,19 +957,19 @@ class FlowDesigner {
                         const endY = (e.clientY - canvasRect.top - this.panY) / this.zoomLevel;
 
                         const moduleX = parseFloat(endTarget.style.left);
+                        const moduleX = parseFloat(endTarget.style.left);
                         const moduleY = parseFloat(endTarget.style.top);
                         const moduleWidth = endRect.width / this.zoomLevel;
                         const moduleHeight = endRect.height / this.zoomLevel;
 
-                        const dx = (endX - moduleX) / moduleWidth - 0.5;
-                        const dy = (endY - moduleY) / moduleHeight - 0.5;
+                        const dists = {
+                            top: Math.abs(endY - moduleY),
+                            bottom: Math.abs(endY - (moduleY + moduleHeight)),
+                            left: Math.abs(endX - moduleX),
+                            right: Math.abs(endX - (moduleX + moduleWidth))
+                        };
 
-                        let endDirection;
-                        if (Math.abs(dx) > Math.abs(dy)) {
-                            endDirection = dx > 0 ? 'right' : 'left';
-                        } else {
-                            endDirection = dy > 0 ? 'bottom' : 'top';
-                        }
+                        const endDirection = Object.keys(dists).reduce((a, b) => dists[a] < dists[b] ? a : b);
 
                         const connection = {
                             fromModule: startModuleId,
