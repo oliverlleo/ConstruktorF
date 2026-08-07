@@ -53,6 +53,11 @@ function updateButtons() {
   });
 }
 
+function setWorkspace(workspace) {
+  activeWorkspace = workspace || null;
+  queueMicrotask(updateButtons);
+}
+
 function blockReadonlyMutation(event) {
   if (!isReadonly()) return;
   const target = event.target instanceof Element ? event.target : null;
@@ -70,8 +75,7 @@ function blockReadonlyMutation(event) {
 }
 
 window.addEventListener('workspaceChanged', (event) => {
-  activeWorkspace = event.detail?.workspace || null;
-  queueMicrotask(updateButtons);
+  setWorkspace(event.detail?.workspace);
 });
 
 ['click', 'pointerdown', 'dragstart', 'drop'].forEach((eventName) => {
@@ -82,8 +86,21 @@ new MutationObserver(() => {
   if (activeWorkspace) updateButtons();
 }).observe(document.documentElement, { childList: true, subtree: true });
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', ensureBanner);
-} else {
-  ensureBanner();
+function syncInitialWorkspace(attempt = 0) {
+  if (typeof window.getCurrentWorkspace === 'function') {
+    const workspace = window.getCurrentWorkspace();
+    if (workspace) {
+      setWorkspace(workspace);
+      return;
+    }
+  }
+  if (attempt < 40) window.setTimeout(() => syncInitialWorkspace(attempt + 1), 100);
 }
+
+function init() {
+  ensureBanner();
+  syncInitialWorkspace();
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+else init();
