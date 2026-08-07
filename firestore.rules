@@ -15,13 +15,13 @@ service cloud.firestore {
         : '';
     }
 
-    function accessDoc() {
-      return get(/databases/$(database)/documents/accessControl/$(request.auth.uid));
+    function accessPath() {
+      return /databases/$(database)/documents/accessControl/$(request.auth.uid);
     }
 
     function sharedRole(workspaceId) {
-      return signedIn() && accessDoc().data != null && workspaceId in accessDoc().data
-        ? accessDoc().data[workspaceId]
+      return signedIn() && exists(accessPath()) && workspaceId in get(accessPath()).data
+        ? get(accessPath()).data[workspaceId]
         : null;
     }
 
@@ -44,40 +44,42 @@ service cloud.firestore {
     }
 
     function inviteCoreUnchanged() {
-      return request.resource.data.fromUserId == resource.data.fromUserId &&
-        request.resource.data.toEmail == resource.data.toEmail &&
-        request.resource.data.resourceType == resource.data.resourceType &&
-        request.resource.data.resourceId == resource.data.resourceId &&
-        request.resource.data.resourceName == resource.data.resourceName;
+      return request.resource.data.get('fromUserId', null) == resource.data.get('fromUserId', null) &&
+        request.resource.data.get('fromUserName', null) == resource.data.get('fromUserName', null) &&
+        request.resource.data.get('toEmail', '') == resource.data.get('toEmail', '') &&
+        request.resource.data.get('resourceType', null) == resource.data.get('resourceType', null) &&
+        request.resource.data.get('resourceId', null) == resource.data.get('resourceId', null) &&
+        request.resource.data.get('resourceName', null) == resource.data.get('resourceName', null);
     }
 
     function isInviteRecipient() {
       return signedIn() && (
-        resource.data.toUserId == request.auth.uid ||
-        resource.data.toEmail.lower() == userEmail()
+        resource.data.get('toUserId', null) == request.auth.uid ||
+        resource.data.get('toEmail', '').lower() == userEmail()
       );
     }
 
     function recipientInviteUpdateAllowed() {
       return isInviteRecipient() &&
         inviteCoreUnchanged() &&
-        request.resource.data.role == resource.data.role &&
-        resource.data.status == 'pending' &&
-        request.resource.data.status in ['accepted', 'declined'] &&
+        request.resource.data.get('role', null) == resource.data.get('role', null) &&
+        resource.data.get('status', null) == 'pending' &&
+        request.resource.data.get('status', null) in ['accepted', 'declined'] &&
         (
-          request.resource.data.status == 'declined' ||
-          request.resource.data.toUserId == request.auth.uid
+          request.resource.data.get('status', null) == 'declined' ||
+          request.resource.data.get('toUserId', null) == request.auth.uid
         );
     }
 
     function senderInviteUpdateAllowed() {
       return signedIn() &&
-        resource.data.fromUserId == request.auth.uid &&
+        resource.data.get('fromUserId', null) == request.auth.uid &&
         inviteCoreUnchanged() &&
-        validRole(request.resource.data.role) &&
+        request.resource.data.get('toUserId', null) == resource.data.get('toUserId', null) &&
+        validRole(request.resource.data.get('role', null)) &&
         (
-          request.resource.data.status in ['canceled', 'revoked'] ||
-          (resource.data.status == 'accepted' && request.resource.data.status == 'accepted')
+          request.resource.data.get('status', null) in ['canceled', 'revoked'] ||
+          (resource.data.get('status', null) == 'accepted' && request.resource.data.get('status', null) == 'accepted')
         );
     }
 
@@ -118,21 +120,22 @@ service cloud.firestore {
 
     match /invitations/{inviteId} {
       allow create: if signedIn() &&
-        request.resource.data.fromUserId == request.auth.uid &&
-        request.resource.data.resourceType == 'workspace' &&
-        request.resource.data.status == 'pending' &&
-        validRole(request.resource.data.role) &&
-        request.resource.data.toEmail is string &&
-        request.resource.data.toEmail.lower() != userEmail();
+        request.resource.data.get('fromUserId', null) == request.auth.uid &&
+        request.resource.data.get('resourceType', null) == 'workspace' &&
+        request.resource.data.get('status', null) == 'pending' &&
+        validRole(request.resource.data.get('role', null)) &&
+        request.resource.data.get('toEmail', '') is string &&
+        request.resource.data.get('toEmail', '').lower() != userEmail() &&
+        request.resource.data.get('toUserId', null) == null;
 
       allow read: if signedIn() && (
-        resource.data.fromUserId == request.auth.uid ||
-        resource.data.toUserId == request.auth.uid ||
-        resource.data.toEmail.lower() == userEmail()
+        resource.data.get('fromUserId', null) == request.auth.uid ||
+        resource.data.get('toUserId', null) == request.auth.uid ||
+        resource.data.get('toEmail', '').lower() == userEmail()
       );
 
       allow update: if recipientInviteUpdateAllowed() || senderInviteUpdateAllowed();
-      allow delete: if signedIn() && resource.data.fromUserId == request.auth.uid;
+      allow delete: if signedIn() && resource.data.get('fromUserId', null) == request.auth.uid;
     }
 
     match /accessControl/{userId} {
@@ -142,7 +145,7 @@ service cloud.firestore {
 
     match /sharedWorkspaces/{workspaceId} {
       allow read: if signedIn() && (
-        resource.data.ownerId == request.auth.uid ||
+        resource.data.get('ownerId', null) == request.auth.uid ||
         sharedRole(workspaceId) in ['viewer', 'editor', 'admin']
       );
       allow write: if false;
