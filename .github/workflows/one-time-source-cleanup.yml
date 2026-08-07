@@ -1,0 +1,67 @@
+name: One-time source cleanup
+
+on:
+  push:
+    branches:
+      - agent/refactor-security-architecture
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/refactor-security-architecture
+          fetch-depth: 0
+
+      - name: Clean obsolete client-only protection and navigation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          main = Path('js/main.js')
+          source = main.read_text(encoding='utf-8')
+          pattern = re.compile(
+              r"    const viewCodeLink = document\.getElementById\('view-code-secure-link'\);.*?\n    // Construktor Menu Logic",
+              re.S,
+          )
+          replacement = '''    const viewCodeLink = document.getElementById('view-code-secure-link');
+    if (viewCodeLink) {
+        viewCodeLink.addEventListener('click', function(event) {
+            event.preventDefault();
+            // O código do cliente é público. Uma senha embutida no JavaScript não protege o fonte.
+            const opened = window.open('pages/code-view.html', '_blank', 'noopener,noreferrer');
+            if (opened) opened.opener = null;
+        });
+    }
+
+    // Construktor Menu Logic'''
+          updated, count = pattern.subn(replacement, source, count=1)
+          if count != 1:
+              raise SystemExit('Bloco legado do code-view não encontrado.')
+          if '246819' in updated:
+              raise SystemExit('Senha client-side ainda encontrada após limpeza.')
+          main.write_text(updated, encoding='utf-8')
+
+          index = Path('index.html')
+          source = index.read_text(encoding='utf-8')
+          source = source.replace('href="#" id="nav-page-builder"', 'href="pages/user-view.html" id="nav-page-builder"')
+          source = source.replace('<span>Construtor de Páginas</span>', '<span>Visualização de Dados</span>')
+          index.write_text(source, encoding='utf-8')
+          PY
+
+      - name: Commit source cleanup
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add js/main.js index.html
+          git commit -m "Remove obsolete client-side code password"
+          git push origin HEAD:agent/refactor-security-architecture
