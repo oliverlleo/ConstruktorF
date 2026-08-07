@@ -25,6 +25,7 @@
     "js/features/auth/login-controller.js",
     "js/features/flow-designer/flow-designer.js",
     "js/features/user-view/user-view.js",
+    "js/features/workspace-permissions/workspace-access-guard.js",
     "js/user/invitations.js",
     "js/user/userProfile.js",
     "functions/index.js",
