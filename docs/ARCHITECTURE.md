@@ -23,11 +23,12 @@ ConstruktorF/
 │   ├── features/                  # funcionalidades isoladas
 │   │   ├── auth/
 │   │   ├── flow-designer/
-│   │   └── user-view/
+│   │   ├── user-view/
+│   │   └── workspace-permissions/
 │   ├── ui/                        # comportamento visual compartilhado
 │   │   └── dark-mode.js
 │   ├── user/                      # perfil e convites existentes
-│   ├── main.js                    # orquestrador do modelador legado
+│   ├── main.js                    # modelador legado em migração
 │   ├── database.js                # camada de persistência compatível
 │   └── autenticacao.js            # fachada de autenticação compartilhada
 ├── css/
@@ -52,6 +53,10 @@ Telas e funcionalidades novas devem morar em `js/features/<feature>/`. O arquivo
 
 ### Compatibilidade durante a migração
 Arquivos antigos como `js/login.js`, `js/flow-designer.js` e `js/dark-mode.js` permanecem como fachadas pequenas para não quebrar URLs e páginas existentes. A implementação real foi movida para diretórios organizados.
+
+`js/main.js` ainda contém a implementação histórica do modelador de módulos/entidades e do construtor de propriedades. Ele foi mantido para preservar compatibilidade durante esta refatoração; **novas funcionalidades não devem ser adicionadas a esse arquivo**. Ao alterar uma área existente do modelador, a regra é extrair a responsabilidade tocada para `js/features/` em vez de ampliar o monólito.
+
+O guard `js/features/workspace-permissions/workspace-access-guard.js` adiciona a camada de UX para workspaces `viewer`; a autorização real continua nas Security Rules.
 
 ### Segurança no servidor
 Permissões não podem depender apenas da interface. `firestore.rules`, `storage.rules` e `functions/` são a fonte de verdade para autorização e sincronização de acesso.
