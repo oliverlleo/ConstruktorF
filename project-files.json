@@ -1,0 +1,56 @@
+{
+  "HTML": [
+    "index.html",
+    "pages/login.html",
+    "pages/user-view.html",
+    "pages/flow-designer.html",
+    "pages/code-view.html"
+  ],
+  "JavaScript": [
+    "js/main.js",
+    "js/config.js",
+    "js/autenticacao.js",
+    "js/database.js",
+    "js/ui.js",
+    "js/ui-enhancements.js",
+    "js/dark-mode.js",
+    "js/workspaces.js",
+    "js/code-view.js",
+    "js/flow-designer.js",
+    "js/core/firebase-app.js",
+    "js/core/security.js",
+    "js/core/firestore-utils.js",
+    "js/core/permissions.js",
+    "js/features/auth/login-controller.js",
+    "js/features/flow-designer/flow-designer.js",
+    "js/features/user-view/user-view.js",
+    "js/user/invitations.js",
+    "js/user/userProfile.js",
+    "functions/index.js",
+    "scripts/validate-project.mjs",
+    "tests/core.test.mjs"
+  ],
+  "CSS": [
+    "css/style.css"
+  ],
+  "Configuração": [
+    "package.json",
+    "functions/package.json",
+    "firebase.json",
+    "firestore.rules",
+    "storage.rules",
+    ".github/workflows/quality.yml",
+    "project-files.json"
+  ],
+  "Documentação": [
+    "README.md",
+    "YOUWARE.md",
+    "docs/ARCHITECTURE.md",
+    "docs/SECURITY.md",
+    "docs/DEPLOYMENT.md"
+  ],
+  "Imagens": [
+    "imagem/logo.png",
+    "imagem/logoconstruktor.png"
+  ]
+}
