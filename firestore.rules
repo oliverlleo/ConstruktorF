@@ -1,0 +1,155 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function userEmail() {
+      return signedIn() && request.auth.token.email != null
+        ? request.auth.token.email.lower()
+        : '';
+    }
+
+    function accessDoc() {
+      return get(/databases/$(database)/documents/accessControl/$(request.auth.uid));
+    }
+
+    function sharedRole(workspaceId) {
+      return signedIn() && accessDoc().data != null && workspaceId in accessDoc().data
+        ? accessDoc().data[workspaceId]
+        : null;
+    }
+
+    function canReadWorkspace(ownerId, workspaceId) {
+      return signedIn() && (
+        request.auth.uid == ownerId ||
+        sharedRole(workspaceId) in ['viewer', 'editor', 'admin']
+      );
+    }
+
+    function canEditWorkspace(ownerId, workspaceId) {
+      return signedIn() && (
+        request.auth.uid == ownerId ||
+        sharedRole(workspaceId) in ['editor', 'admin']
+      );
+    }
+
+    function validRole(role) {
+      return role in ['viewer', 'editor', 'admin'];
+    }
+
+    function inviteCoreUnchanged() {
+      return request.resource.data.fromUserId == resource.data.fromUserId &&
+        request.resource.data.toEmail == resource.data.toEmail &&
+        request.resource.data.resourceType == resource.data.resourceType &&
+        request.resource.data.resourceId == resource.data.resourceId &&
+        request.resource.data.resourceName == resource.data.resourceName;
+    }
+
+    function isInviteRecipient() {
+      return signedIn() && (
+        resource.data.toUserId == request.auth.uid ||
+        resource.data.toEmail.lower() == userEmail()
+      );
+    }
+
+    function recipientInviteUpdateAllowed() {
+      return isInviteRecipient() &&
+        inviteCoreUnchanged() &&
+        request.resource.data.role == resource.data.role &&
+        resource.data.status == 'pending' &&
+        request.resource.data.status in ['accepted', 'declined'] &&
+        (
+          request.resource.data.status == 'declined' ||
+          request.resource.data.toUserId == request.auth.uid
+        );
+    }
+
+    function senderInviteUpdateAllowed() {
+      return signedIn() &&
+        resource.data.fromUserId == request.auth.uid &&
+        inviteCoreUnchanged() &&
+        validRole(request.resource.data.role) &&
+        (
+          request.resource.data.status in ['canceled', 'revoked'] ||
+          (resource.data.status == 'accepted' && request.resource.data.status == 'accepted')
+        );
+    }
+
+    match /users/{userId} {
+      allow read, create, update: if isSelf(userId);
+      allow delete: if false;
+
+      match /preferences/{preferenceId} {
+        allow read, write: if isSelf(userId);
+      }
+
+      match /workspaces/{workspaceId} {
+        allow read: if canReadWorkspace(userId, workspaceId);
+        allow create: if isSelf(userId);
+        allow update, delete: if isSelf(userId);
+
+        match /modules/{moduleId} {
+          allow read: if canReadWorkspace(userId, workspaceId);
+          allow write: if canEditWorkspace(userId, workspaceId);
+        }
+
+        match /entities/{entityId} {
+          allow read: if canReadWorkspace(userId, workspaceId);
+          allow write: if canEditWorkspace(userId, workspaceId);
+
+          match /records/{recordId} {
+            allow read: if canReadWorkspace(userId, workspaceId);
+            allow write: if canEditWorkspace(userId, workspaceId);
+          }
+        }
+
+        match /flows/{flowId} {
+          allow read: if canReadWorkspace(userId, workspaceId);
+          allow write: if canEditWorkspace(userId, workspaceId);
+        }
+      }
+    }
+
+    match /invitations/{inviteId} {
+      allow create: if signedIn() &&
+        request.resource.data.fromUserId == request.auth.uid &&
+        request.resource.data.resourceType == 'workspace' &&
+        request.resource.data.status == 'pending' &&
+        validRole(request.resource.data.role) &&
+        request.resource.data.toEmail is string &&
+        request.resource.data.toEmail.lower() != userEmail();
+
+      allow read: if signedIn() && (
+        resource.data.fromUserId == request.auth.uid ||
+        resource.data.toUserId == request.auth.uid ||
+        resource.data.toEmail.lower() == userEmail()
+      );
+
+      allow update: if recipientInviteUpdateAllowed() || senderInviteUpdateAllowed();
+      allow delete: if signedIn() && resource.data.fromUserId == request.auth.uid;
+    }
+
+    match /accessControl/{userId} {
+      allow read: if isSelf(userId);
+      allow write: if false;
+    }
+
+    match /sharedWorkspaces/{workspaceId} {
+      allow read: if signedIn() && (
+        resource.data.ownerId == request.auth.uid ||
+        sharedRole(workspaceId) in ['viewer', 'editor', 'admin']
+      );
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
