@@ -1,0 +1,158 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function userEmail() {
+      return signedIn() && request.auth.token.email != null
+        ? request.auth.token.email.lower()
+        : '';
+    }
+
+    function accessPath() {
+      return /databases/$(database)/documents/accessControl/$(request.auth.uid);
+    }
+
+    function sharedRole(workspaceId) {
+      return signedIn() && exists(accessPath()) && workspaceId in get(accessPath()).data
+        ? get(accessPath()).data[workspaceId]
+        : null;
+    }
+
+    function canReadWorkspace(ownerId, workspaceId) {
+      return signedIn() && (
+        request.auth.uid == ownerId ||
+        sharedRole(workspaceId) in ['viewer', 'editor', 'admin']
+      );
+    }
+
+    function canEditWorkspace(ownerId, workspaceId) {
+      return signedIn() && (
+        request.auth.uid == ownerId ||
+        sharedRole(workspaceId) in ['editor', 'admin']
+      );
+    }
+
+    function validRole(role) {
+      return role in ['viewer', 'editor', 'admin'];
+    }
+
+    function inviteCoreUnchanged() {
+      return request.resource.data.get('fromUserId', null) == resource.data.get('fromUserId', null) &&
+        request.resource.data.get('fromUserName', null) == resource.data.get('fromUserName', null) &&
+        request.resource.data.get('toEmail', '') == resource.data.get('toEmail', '') &&
+        request.resource.data.get('resourceType', null) == resource.data.get('resourceType', null) &&
+        request.resource.data.get('resourceId', null) == resource.data.get('resourceId', null) &&
+        request.resource.data.get('resourceName', null) == resource.data.get('resourceName', null);
+    }
+
+    function isInviteRecipient() {
+      return signedIn() && (
+        resource.data.get('toUserId', null) == request.auth.uid ||
+        resource.data.get('toEmail', '').lower() == userEmail()
+      );
+    }
+
+    function recipientInviteUpdateAllowed() {
+      return isInviteRecipient() &&
+        inviteCoreUnchanged() &&
+        request.resource.data.get('role', null) == resource.data.get('role', null) &&
+        resource.data.get('status', null) == 'pending' &&
+        request.resource.data.get('status', null) in ['accepted', 'declined'] &&
+        (
+          request.resource.data.get('status', null) == 'declined' ||
+          request.resource.data.get('toUserId', null) == request.auth.uid
+        );
+    }
+
+    function senderInviteUpdateAllowed() {
+      return signedIn() &&
+        resource.data.get('fromUserId', null) == request.auth.uid &&
+        inviteCoreUnchanged() &&
+        request.resource.data.get('toUserId', null) == resource.data.get('toUserId', null) &&
+        validRole(request.resource.data.get('role', null)) &&
+        (
+          request.resource.data.get('status', null) in ['canceled', 'revoked'] ||
+          (resource.data.get('status', null) == 'accepted' && request.resource.data.get('status', null) == 'accepted')
+        );
+    }
+
+    match /users/{userId} {
+      allow read, create, update: if isSelf(userId);
+      allow delete: if false;
+
+      match /preferences/{preferenceId} {
+        allow read, write: if isSelf(userId);
+      }
+
+      match /workspaces/{workspaceId} {
+        allow read: if canReadWorkspace(userId, workspaceId);
+        allow create: if isSelf(userId);
+        allow update, delete: if isSelf(userId);
+
+        match /modules/{moduleId} {
+          allow read: if canReadWorkspace(userId, workspaceId);
+          allow write: if canEditWorkspace(userId, workspaceId);
+        }
+
+        match /entities/{entityId} {
+          allow read: if canReadWorkspace(userId, workspaceId);
+          allow write: if canEditWorkspace(userId, workspaceId);
+
+          match /records/{recordId} {
+            allow read: if canReadWorkspace(userId, workspaceId);
+            allow write: if canEditWorkspace(userId, workspaceId);
+          }
+        }
+
+        match /flows/{flowId} {
+          allow read: if canReadWorkspace(userId, workspaceId);
+          allow write: if canEditWorkspace(userId, workspaceId);
+        }
+      }
+    }
+
+    match /invitations/{inviteId} {
+      allow create: if signedIn() &&
+        request.resource.data.get('fromUserId', null) == request.auth.uid &&
+        request.resource.data.get('resourceType', null) == 'workspace' &&
+        request.resource.data.get('status', null) == 'pending' &&
+        validRole(request.resource.data.get('role', null)) &&
+        request.resource.data.get('toEmail', '') is string &&
+        request.resource.data.get('toEmail', '').lower() != userEmail() &&
+        request.resource.data.get('toUserId', null) == null;
+
+      allow read: if signedIn() && (
+        resource.data.get('fromUserId', null) == request.auth.uid ||
+        resource.data.get('toUserId', null) == request.auth.uid ||
+        resource.data.get('toEmail', '').lower() == userEmail()
+      );
+
+      allow update: if recipientInviteUpdateAllowed() || senderInviteUpdateAllowed();
+      allow delete: if signedIn() && resource.data.get('fromUserId', null) == request.auth.uid;
+    }
+
+    match /accessControl/{userId} {
+      allow read: if isSelf(userId);
+      allow write: if false;
+    }
+
+    match /sharedWorkspaces/{workspaceId} {
+      allow read: if signedIn() && (
+        resource.data.get('ownerId', null) == request.auth.uid ||
+        sharedRole(workspaceId) in ['viewer', 'editor', 'admin']
+      );
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

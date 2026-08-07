@@ -1,67 +1,104 @@
-# Construktor - Sistema de Construção Visual de ERP/CRM
+# Construktor
 
-**VERSÃO CORRIGIDA E ATUALIZADA**  
-Exportada em: 01/07/2025 às 00:46:08
+Construtor visual de estruturas ERP/CRM com módulos, entidades, propriedades, workspaces compartilhados e Designer de Fluxos.
 
-## ✅ Correções Aplicadas Nesta Versão
+## Stack
 
-### Sistema de Modo Escuro Implementado
-- **🌙 Modo Escuro**: Sistema completo de alternância entre modo claro e escuro
-- **☀️ Seletores de Tema**: Sol/lua na página de login e menu do usuário
-- **💾 Persistência**: Preferência salva automaticamente no localStorage
-- **🎨 Design Consistente**: Cores otimizadas para melhor experiência visual
+- HTML5, CSS3 e JavaScript ES Modules
+- Tailwind CSS via CDN
+- Firebase Authentication
+- Cloud Firestore
+- Cloud Storage
+- Cloud Functions
+- SweetAlert2, Sortable.js, Lucide e Font Awesome
 
-### Melhorias na Interface
-- **Cores Corrigidas**: Área de entidades nos módulos com cores adequadas ao modo escuro
-- **Título Login**: Nome "Construktor" agora aparece corretamente em branco no modo escuro
-- **⚡ Tecla Enter**: Formulários de login e registro respondem à tecla Enter
-- **📱 Responsividade**: Interface otimizada para diferentes tamanhos de tela
+## Estrutura
 
-### Limpeza de Código
-- **🧹 Scripts Removidos**: Scripts youware-lib removidos de todos os arquivos HTML
-- **📁 Arquivos Atualizados**: Todos os arquivos incluídos no sistema de download
-- **🔧 Modo Escuro**: Sistema dark-mode.js incluído na estrutura
+```text
+├── index.html                 # modelador principal
+├── pages/                     # páginas da aplicação
+├── js/
+│   ├── core/                  # Firebase, segurança, permissões e utilitários Firestore
+│   ├── features/              # funcionalidades isoladas por domínio
+│   ├── ui/                    # comportamento visual compartilhado
+│   ├── user/                  # perfil e convites
+│   ├── main.js                # orquestrador do modelador
+│   ├── database.js            # camada de persistência
+│   └── autenticacao.js        # autenticação compartilhada
+├── functions/                 # Cloud Functions
+├── tests/                     # testes unitários
+├── scripts/                   # validações do repositório
+├── docs/                      # arquitetura, segurança e implantação
+├── firestore.rules
+├── storage.rules
+├── firebase.json
+└── project-files.json         # manifesto usado pelo visualizador de código
+```
 
-## Descrição
-O Construktor é um sistema visual para construção de ERP/CRM, permitindo criar e gerenciar módulos, entidades e campos de formulários.
+A organização completa está em [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## Funcionalidades Principais
-- ✨ Criação de módulos personalizados
-- 🎯 Arrastar e soltar entidades nos módulos
-- ⚙️ Configuração avançada de campos de formulário
-- 👥 Sistema completo de convites e permissões
-- 🔄 Áreas de trabalho compartilhadas
-- 🛡️ Controle granular de acesso (Admin/Editor/Leitor)
-- 🌙 Modo escuro com alternância sol/lua
-- ⚡ Suporte à tecla Enter em formulários
+## Funcionalidades
 
-## Estrutura de Arquivos
-### Arquivos Principais
-- `index.html` - Página principal da aplicação (CORRIGIDA)
-- `js/main.js` - Arquivo JavaScript principal
-- `js/user/invitations.js` - Sistema de convites (TOTALMENTE REESCRITO)
-- `js/config.js` - Configurações da aplicação
+- criação e ordenação de módulos;
+- criação de entidades e propriedades configuráveis;
+- drag-and-drop;
+- workspaces próprios e compartilhados;
+- papéis `viewer`, `editor` e `admin`;
+- convites e revogação de acesso;
+- Designer de Fluxos com zoom, pan e persistência;
+- visualização somente leitura de dados em `pages/user-view.html`;
+- modo claro/escuro;
+- autenticação por email/senha, Google e telefone;
+- perfil com avatar no Firebase Storage.
 
-### Sistema de Temas
-- `js/dark-mode.js` - Gerenciador de modo escuro/claro (NOVO)
+## Segurança
 
-### Configuração e Documentação
-- `firebase_rules.json` - Regras de segurança do Firebase
-- `database-rules-guide.md` - Guia para configuração das regras
-- `YOUWARE.md` - Documentação técnica completa
+O projeto agora versiona as regras de Firestore e Storage e as Cloud Functions responsáveis pela sincronização de permissões. O cliente não pode gravar diretamente em `accessControl` ou `sharedWorkspaces`.
 
-## 🔧 Tecnologias Utilizadas
-- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **Styles**: Tailwind CSS
-- **Icons**: Lucide Icons (com sistema otimizado)
-- **Backend**: Firebase (Auth, Realtime Database, Storage)
-- **UI**: SweetAlert2, Sortable.js
+Features novas devem inserir dados externos com `textContent`/`createElement`, nunca interpolando conteúdo do Firestore diretamente em `innerHTML`. Consulte [docs/SECURITY.md](docs/SECURITY.md).
 
-## 📝 Notas Importantes
-Esta versão inclui todas as correções e melhorias para:
-1. Sistema completo de modo escuro com seletores sol/lua
-2. Cores otimizadas para melhor experiência visual
-3. Funcionalidade Enter em todos os formulários de autenticação
-4. Código limpo sem dependências externas desnecessárias
+> A configuração web do Firebase em `js/config.js` identifica o projeto; ela não substitui Security Rules e não deve conter segredos de servidor.
 
-Para mais informações técnicas, consulte `YOUWARE.md`.
+## Desenvolvimento
+
+O frontend continua sem etapa obrigatória de build. Para servir localmente, use qualquer servidor HTTP estático; não abra as páginas via `file://`, pois ES Modules e `fetch()` dependem de HTTP.
+
+### Verificações
+
+Requer Node.js 20+:
+
+```bash
+npm test
+npm run check
+```
+
+O GitHub Actions executa essas verificações em pushes para `main`, branches `agent/**` e pull requests.
+
+## Firebase
+
+As configurações de deploy ficam em `firebase.json`.
+
+```bash
+cd functions
+npm install
+cd ..
+firebase emulators:start
+```
+
+Depois de validar no Emulator Suite:
+
+```bash
+firebase deploy --only firestore:rules,storage,functions
+```
+
+Veja [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) para o checklist completo.
+
+## Padrão para novas implementações
+
+1. Coloque infraestrutura reutilizável em `js/core/`.
+2. Coloque uma nova funcionalidade em `js/features/<feature>/`.
+3. Reutilize `js/core/firebase-app.js`; não inicialize um segundo app Firebase.
+4. Faça autorização no backend/rules, não apenas escondendo botões.
+5. Adicione lógica pura testável em `tests/`.
+6. Atualize `project-files.json` quando criar arquivos que devam aparecer no visualizador de código.
+7. Rode `npm test` e `npm run check` antes de abrir PR.
