@@ -5,6 +5,7 @@
 
   const BLOCKED_TAGS = new Set(['SCRIPT', 'IFRAME', 'OBJECT', 'EMBED', 'META', 'BASE']);
   const URL_ATTRIBUTES = new Set(['href', 'src', 'action', 'formaction', 'xlink:href']);
+  const bootstrapScriptUrl = document.currentScript?.src || window.location.href;
 
   function isUnsafeUrl(value) {
     const normalized = String(value || '')
@@ -101,13 +102,47 @@
     });
   }
 
+  function fixLegacyNavigation() {
+    const pageBuilder = document.getElementById('nav-page-builder');
+    if (pageBuilder) {
+      pageBuilder.setAttribute('href', 'pages/user-view.html');
+      const label = pageBuilder.querySelector('span');
+      if (label) label.textContent = 'Visualização de Dados';
+    }
+  }
+
+  function replaceFakeCodePasswordGate() {
+    // O repositório é público. Uma senha embutida no JavaScript do navegador
+    // só cria falsa sensação de segurança, pois pode ser lida no próprio código.
+    document.addEventListener('click', (event) => {
+      const link = event.target.closest?.('#view-code-secure-link');
+      if (!link) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const opened = window.open('pages/code-view.html', '_blank', 'noopener,noreferrer');
+      if (opened) opened.opener = null;
+    }, true);
+  }
+
+  function loadWorkspaceAccessGuard() {
+    try {
+      const guardUrl = new URL('features/workspace-permissions/workspace-access-guard.js', bootstrapScriptUrl).href;
+      import(guardUrl).catch((error) => console.error('Falha ao carregar guard de permissões:', error));
+    } catch (error) {
+      console.error('Falha ao preparar guard de permissões:', error);
+    }
+  }
+
   installInnerHtmlSanitizer();
   removeLegacyInjectedScripts();
   watchLegacyScripts();
+  replaceFakeCodePasswordGate();
+  loadWorkspaceAccessGuard();
 
   document.addEventListener('DOMContentLoaded', () => {
     removeLegacyInjectedScripts();
     improveExternalLinks();
     preventDuplicateSubmissions();
+    fixLegacyNavigation();
   });
 })();
