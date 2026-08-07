@@ -1,0 +1,153 @@
+/*
+ * Tema global do Construktor.
+ *
+ * A preferência escolhida no próprio sistema é a fonte de verdade.
+ * Estas regras também neutralizam variantes dark: do Tailwind CDN quando
+ * o sistema operacional está em um tema diferente do escolhido no app.
+ */
+
+:root {
+  --theme-switcher-bg: rgba(255, 255, 255, 0.96);
+  --theme-switcher-border: #e2e8f0;
+  --theme-switcher-text: #475569;
+  --theme-switcher-active-bg: #4f46e5;
+  --theme-switcher-active-text: #ffffff;
+  --theme-switcher-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+}
+
+html[data-theme='dark'] {
+  --theme-switcher-bg: rgba(30, 41, 59, 0.96);
+  --theme-switcher-border: #475569;
+  --theme-switcher-text: #cbd5e1;
+  --theme-switcher-active-bg: #6366f1;
+  --theme-switcher-active-text: #ffffff;
+  --theme-switcher-shadow: 0 10px 30px rgba(0, 0, 0, 0.38);
+}
+
+.construktor-theme-switcher {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 9999;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--theme-switcher-border);
+  border-radius: 999px;
+  background: var(--theme-switcher-bg);
+  box-shadow: var(--theme-switcher-shadow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.construktor-theme-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--theme-switcher-text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.construktor-theme-option:hover {
+  transform: translateY(-1px);
+}
+
+.construktor-theme-option.is-active {
+  background: var(--theme-switcher-active-bg);
+  color: var(--theme-switcher-active-text);
+}
+
+.construktor-theme-option:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .construktor-theme-switcher {
+    right: 10px;
+    bottom: 10px;
+  }
+
+  .construktor-theme-option {
+    min-height: 32px;
+    padding: 6px 9px;
+  }
+}
+
+/* Base explícita do tema escuro para utilitários legados. */
+html[data-theme='dark'] body {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+html[data-theme='dark'] .bg-white { background-color: #334155 !important; }
+html[data-theme='dark'] .bg-slate-50 { background-color: #1e293b !important; }
+html[data-theme='dark'] .bg-slate-100 { background-color: #475569 !important; }
+html[data-theme='dark'] .text-slate-900 { color: #f8fafc !important; }
+html[data-theme='dark'] .text-slate-800 { color: #e2e8f0 !important; }
+html[data-theme='dark'] .text-slate-700 { color: #cbd5e1 !important; }
+html[data-theme='dark'] .text-slate-600 { color: #94a3b8 !important; }
+html[data-theme='dark'] .text-slate-500 { color: #94a3b8 !important; }
+html[data-theme='dark'] .border-slate-200 { border-color: #475569 !important; }
+html[data-theme='dark'] .border-slate-300 { border-color: #64748b !important; }
+
+html[data-theme='dark'] input,
+html[data-theme='dark'] select,
+html[data-theme='dark'] textarea {
+  color-scheme: dark;
+}
+
+/*
+ * Variantes Tailwind usadas pelo projeto.
+ * A especificidade + !important evita que @media(prefers-color-scheme: dark)
+ * do CDN altere a escolha manual do usuário.
+ */
+html[data-theme='dark'] .dark\:bg-slate-900 { background-color: #0f172a !important; }
+html[data-theme='dark'] .dark\:bg-slate-800 { background-color: #1e293b !important; }
+html[data-theme='dark'] .dark\:bg-slate-700 { background-color: #334155 !important; }
+html[data-theme='dark'] .dark\:bg-slate-800\/95 { background-color: rgba(30, 41, 59, 0.95) !important; }
+html[data-theme='dark'] .dark\:text-slate-100 { color: #f1f5f9 !important; }
+html[data-theme='dark'] .dark\:text-slate-200 { color: #e2e8f0 !important; }
+html[data-theme='dark'] .dark\:text-slate-300 { color: #cbd5e1 !important; }
+html[data-theme='dark'] .dark\:border-slate-700 { border-color: #334155 !important; }
+html[data-theme='dark'] .dark\:border-slate-600 { border-color: #475569 !important; }
+html[data-theme='dark'] .dark\:hover\:bg-slate-700:hover { background-color: #334155 !important; }
+
+/* Neutraliza o dark: automático do Tailwind quando o app está em modo claro. */
+html[data-theme='light'] .dark\:bg-slate-900 { background-color: #f8fafc !important; }
+html[data-theme='light'] .dark\:bg-slate-800 { background-color: #ffffff !important; }
+html[data-theme='light'] .dark\:bg-slate-700 { background-color: #ffffff !important; }
+html[data-theme='light'] .dark\:bg-slate-800\/95 { background-color: rgba(255, 255, 255, 0.95) !important; }
+html[data-theme='light'] .dark\:text-slate-100 { color: #1e293b !important; }
+html[data-theme='light'] .dark\:text-slate-200 { color: #334155 !important; }
+html[data-theme='light'] .dark\:text-slate-300 { color: #475569 !important; }
+html[data-theme='light'] .dark\:border-slate-700 { border-color: #e2e8f0 !important; }
+html[data-theme='light'] .dark\:border-slate-600 { border-color: #cbd5e1 !important; }
+html[data-theme='light'] .dark\:hover\:bg-slate-700:hover { background-color: #f1f5f9 !important; }
+
+/* Componentes especiais. */
+html[data-theme='dark'] .notion-auth-container {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+}
+
+html[data-theme='dark'] .notion-auth-form {
+  background-color: #1e293b !important;
+  border-color: #475569 !important;
+}
+
+html[data-theme='dark'] .flow-canvas {
+  background-color: #0f172a !important;
+  background-image: radial-gradient(circle, #334155 1px, transparent 1px) !important;
+}
