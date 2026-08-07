@@ -18,7 +18,7 @@ jobs:
           ref: agent/refactor-security-architecture
           fetch-depth: 0
 
-      - name: Fix legacy navigation and fake client-side code password
+      - name: Fix legacy navigation, access guard and fake client-side code password
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -28,6 +28,12 @@ jobs:
           text = index.read_text(encoding='utf-8')
           text = text.replace('href="#" id="nav-page-builder"', 'href="pages/user-view.html" id="nav-page-builder"')
           text = text.replace('<span>Construtor de Páginas</span>', '<span>Visualização de Dados</span>')
+          marker = '<script type="module" src="js/features/workspace-permissions/workspace-access-guard.js"></script>'
+          if marker not in text:
+              text = text.replace(
+                  '<script type="module" src="js/main.js"></script>',
+                  '<script type="module" src="js/main.js"></script>\n    ' + marker
+              )
           index.write_text(text, encoding='utf-8')
 
           main = Path('js/main.js')
@@ -45,9 +51,9 @@ jobs:
 
     // Construktor Menu Logic'''
           updated, count = pattern.subn(replacement, text, count=1)
-          if count != 1:
+          if count != 1 and 'uma senha escrita no JavaScript do cliente' not in text:
               raise SystemExit('Bloco de acesso ao code-view não encontrado para substituição segura.')
-          main.write_text(updated, encoding='utf-8')
+          main.write_text(updated if count else text, encoding='utf-8')
           PY
 
       - name: Commit cleanup
