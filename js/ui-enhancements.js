@@ -67,23 +67,6 @@
     window.__construktorInnerHtmlSanitizerInstalled = true;
   }
 
-  function removeLegacyInjectedScripts(root = document) {
-    root.querySelectorAll?.('script[src*="lib.youware.com"]').forEach((script) => script.remove());
-  }
-
-  function watchLegacyScripts() {
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        for (const node of mutation.addedNodes) {
-          if (node.nodeType !== Node.ELEMENT_NODE) continue;
-          if (node.matches?.('script[src*="lib.youware.com"]')) node.remove();
-          removeLegacyInjectedScripts(node);
-        }
-      }
-    });
-    observer.observe(document.documentElement, { childList: true, subtree: true });
-  }
-
   function improveExternalLinks() {
     document.querySelectorAll('a[target="_blank"]').forEach((link) => {
       const rel = new Set((link.getAttribute('rel') || '').split(/\s+/).filter(Boolean));
@@ -134,13 +117,10 @@
   }
 
   installInnerHtmlSanitizer();
-  removeLegacyInjectedScripts();
-  watchLegacyScripts();
   replaceFakeCodePasswordGate();
   loadWorkspaceAccessGuard();
 
   document.addEventListener('DOMContentLoaded', () => {
-    removeLegacyInjectedScripts();
     improveExternalLinks();
     preventDuplicateSubmissions();
     fixLegacyNavigation();
