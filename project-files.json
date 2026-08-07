@@ -14,6 +14,7 @@
     "js/ui.js",
     "js/ui-enhancements.js",
     "js/dark-mode.js",
+    "js/ui/dark-mode.js",
     "js/workspaces.js",
     "js/code-view.js",
     "js/flow-designer.js",
@@ -44,7 +45,6 @@
   ],
   "Documentação": [
     "README.md",
-    "YOUWARE.md",
     "docs/ARCHITECTURE.md",
     "docs/SECURITY.md",
     "docs/DEPLOYMENT.md"
