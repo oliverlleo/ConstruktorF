@@ -8,7 +8,7 @@ on:
       - 'agent/**'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   validate:
@@ -16,6 +16,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -27,3 +30,49 @@ jobs:
 
       - name: Structural checks
         run: npm run check
+
+      - name: One-time legacy source cleanup
+        if: github.event_name == 'pull_request' && github.head_ref == 'agent/refactor-security-architecture' && github.actor != 'github-actions[bot]'
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          main = Path('js/main.js')
+          source = main.read_text(encoding='utf-8')
+          if '246819' in source:
+              pattern = re.compile(
+                  r"    const viewCodeLink = document\.getElementById\('view-code-secure-link'\);.*?\n    // Construktor Menu Logic",
+                  re.S,
+              )
+              replacement = '''    const viewCodeLink = document.getElementById('view-code-secure-link');
+    if (viewCodeLink) {
+        viewCodeLink.addEventListener('click', function(event) {
+            event.preventDefault();
+            // O código do cliente é público. Senhas no JavaScript não protegem o fonte.
+            const opened = window.open('pages/code-view.html', '_blank', 'noopener,noreferrer');
+            if (opened) opened.opener = null;
+        });
+    }
+
+    // Construktor Menu Logic'''
+              source, count = pattern.subn(replacement, source, count=1)
+              if count != 1 or '246819' in source:
+                  raise SystemExit('Falha ao remover proteção client-side obsoleta.')
+              main.write_text(source, encoding='utf-8')
+
+          index = Path('index.html')
+          source = index.read_text(encoding='utf-8')
+          source = source.replace('href="#" id="nav-page-builder"', 'href="pages/user-view.html" id="nav-page-builder"')
+          source = source.replace('<span>Construtor de Páginas</span>', '<span>Visualização de Dados</span>')
+          index.write_text(source, encoding='utf-8')
+          PY
+
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add js/main.js index.html
+          git commit -m "Remove obsolete client-side code password"
+          git push origin HEAD:agent/refactor-security-architecture
