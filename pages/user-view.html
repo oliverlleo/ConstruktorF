@@ -1,2 +1,69 @@
-// Erro ao carregar pages/user-view.html
-// Erro 403: 
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualização - Construktor</title>
+  <link rel="icon" href="../imagem/logo.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+  <style>
+    body { font-family: Inter, sans-serif; }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800">
+  <div class="min-h-screen flex flex-col">
+    <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <div class="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
+        <div class="flex items-center gap-3">
+          <a href="../index.html" class="flex items-center gap-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <img src="../imagem/logo.png" alt="Construktor" class="h-9 w-9 rounded-lg">
+            <div>
+              <div class="font-bold text-slate-900">Construktor</div>
+              <div class="text-xs text-slate-500">Visualização de dados</div>
+            </div>
+          </a>
+        </div>
+        <div class="flex items-center gap-3 text-sm">
+          <span id="user-name" class="hidden text-slate-600 sm:inline"></span>
+          <button id="logout" type="button" class="rounded-lg border border-slate-200 px-3 py-2 font-medium text-slate-600 hover:bg-slate-50">
+            Sair
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="mx-auto flex w-full max-w-[1600px] flex-1 flex-col lg:flex-row">
+      <aside class="border-b border-slate-200 bg-white lg:w-80 lg:border-b-0 lg:border-r">
+        <div class="border-b border-slate-200 p-4">
+          <label for="workspace-select" class="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">Área de trabalho</label>
+          <select id="workspace-select" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"></select>
+          <div class="mt-2 text-xs text-slate-500">Acesso: <span id="workspace-role" class="font-medium"></span></div>
+        </div>
+        <nav id="navigation" class="max-h-[40vh] overflow-y-auto p-3 lg:max-h-[calc(100vh-180px)]"></nav>
+      </aside>
+
+      <main class="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
+        <div class="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h1 id="entity-title" class="text-2xl font-bold text-slate-900">Selecione uma entidade</h1>
+            <p id="entity-description" class="mt-1 text-sm text-slate-500">Escolha uma entidade no menu para visualizar os registros.</p>
+          </div>
+          <div id="loading" class="hidden rounded-lg bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700">Carregando…</div>
+        </div>
+        <section id="content">
+          <div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
+            Selecione uma área de trabalho e uma entidade.
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="../js/features/user-view/user-view.js"></script>
+</body>
+</html>
