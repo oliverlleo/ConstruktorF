@@ -1,16 +1,16 @@
 name: One-time source cleanup
 
 on:
-  push:
+  pull_request:
     branches:
-      - agent/refactor-security-architecture
+      - main
 
 permissions:
   contents: write
 
 jobs:
   cleanup:
-    if: github.actor != 'github-actions[bot]'
+    if: github.head_ref == 'agent/refactor-security-architecture' && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
