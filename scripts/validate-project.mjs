@@ -27,6 +27,25 @@ const requiredFiles = [
   'functions/index.js'
 ];
 
+const manifestRequired = [
+  'index.html',
+  'pages/login.html',
+  'pages/user-view.html',
+  'pages/flow-designer.html',
+  'pages/code-view.html',
+  'js/core/firebase-app.js',
+  'js/core/security.js',
+  'js/features/auth/login-controller.js',
+  'js/features/flow-designer/flow-designer.js',
+  'js/features/user-view/user-view.js',
+  'firestore.rules',
+  'storage.rules',
+  'README.md',
+  'docs/ARCHITECTURE.md',
+  'docs/SECURITY.md',
+  'docs/DEPLOYMENT.md'
+];
+
 const forbiddenFiles = [
   'teste-dark-backup.html',
   'pages/code-view2.html',
@@ -85,10 +104,8 @@ if (!uiEnhancements.includes('__construktorInnerHtmlSanitizerInstalled')) {
 
 const manifest = JSON.parse(await readFile('project-files.json', 'utf8'));
 const manifestFiles = new Set(Object.values(manifest).flat());
-for (const required of requiredFiles.filter((file) => !file.startsWith('docs/') || true)) {
-  if (['index.html', 'pages/login.html', 'pages/user-view.html', 'pages/flow-designer.html', 'pages/code-view.html'].includes(required) && !manifestFiles.has(required)) {
-    errors.push(`Arquivo principal ausente do project-files.json: ${required}`);
-  }
+for (const file of manifestRequired) {
+  if (!manifestFiles.has(file)) errors.push(`Arquivo obrigatório ausente do project-files.json: ${file}`);
 }
 
 if (errors.length) {
