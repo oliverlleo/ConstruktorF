@@ -33,8 +33,7 @@
     "tests/core.test.mjs"
   ],
   "CSS": [
-    "css/style.css",
-    "css/theme.css"
+    "css/style.css"
   ],
   "Configuração": [
     "package.json",
