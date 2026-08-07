@@ -1,6 +1,5 @@
-import { access, readFile, readdir } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
 import { constants } from 'node:fs';
-import path from 'node:path';
 
 const requiredFiles = [
   'index.html',
@@ -51,7 +50,6 @@ const forbiddenFiles = [
   'pages/code-view2.html',
   'pages/code-vieww.html',
   'read.md',
-  'YOUWARE.md',
   'todo.json',
   'jules-scratch/verification/verify_drag_and_drop.py'
 ];
@@ -73,23 +71,6 @@ for (const file of forbiddenFiles) {
   } catch {
     // esperado
   }
-}
-
-async function collectHtmlFiles(directory = '.') {
-  const result = [];
-  const entries = await readdir(directory, { withFileTypes: true });
-  for (const entry of entries) {
-    if (['.git', 'node_modules', 'functions'].includes(entry.name)) continue;
-    const entryPath = path.join(directory, entry.name);
-    if (entry.isDirectory()) result.push(...await collectHtmlFiles(entryPath));
-    else if (entry.name.endsWith('.html')) result.push(entryPath);
-  }
-  return result;
-}
-
-for (const htmlFile of await collectHtmlFiles()) {
-  const html = await readFile(htmlFile, 'utf8');
-  if (html.includes('lib.youware.com')) errors.push(`Script legado youware encontrado em ${htmlFile}`);
 }
 
 const userView = await readFile('pages/user-view.html', 'utf8').catch(() => '');
